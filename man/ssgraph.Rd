@@ -3,12 +3,12 @@
 
 \title{	Algorithm for graphical models using spike-and-slab priors  }
 \description{
-	This function has a sampling algorithm for Bayesian model determination in undirected graphical models, based on sbike-and-slab prios. 
+	This function has a sampling algorithm for Bayesian model determination in undirected graphical models, based on spike-and-slab priors. 
 }
 \usage{
-ssgraph( data, n = NULL, iter = 5000, burnin = iter / 2, v1 = NULL, 
-         v2 = NULL, lambda = 1, g.prior = 0.5, g.start = "full", 
-         sig.start = NULL, print = 100 )
+ssgraph( data, n = NULL, method = "ggm", iter = 5000, burnin = iter / 2, 
+         v1 = 4e-04, v2 = 1, lambda = 1, g.prior = 0.5, g.start = "full", 
+         sig.start = NULL, print = 1000 )
 }
 
 \arguments{
@@ -21,6 +21,13 @@ ssgraph( data, n = NULL, iter = 5000, burnin = iter / 2, v1 = NULL,
 	}
 
 	\item{n}{The number of observations. It is needed if the \code{"data"} is a covariance matrix.}
+
+	\item{method}{
+		A character with two options \code{"ggm"} (default) and \code{"gcgm"}. 
+		Option \code{"ggm"} is for Gaussian graphical models based on Gaussianity assumption.
+		Option \code{"gcgm"} is for Gaussian copula graphical models for the data that not follow Gaussianity assumption 
+		(e.g. continuous non-Gaussian, discrete, or mixed dataset).
+	}
 	  
 	\item{iter}{The number of iteration for the sampling algorithm.}
 	\item{burnin}{The number of burn-in iteration for the sampling algorithm.}
@@ -58,9 +65,15 @@ ssgraph( data, n = NULL, iter = 5000, burnin = iter / 2, v1 = NULL,
 }
 
 \references{
-Wang, H. (2015). Scaling it up: Stochastic search structure learning in graphical models, \emph{Bayesian Analysis}, 10(2)351-377
+Wang, H. (2015). Scaling it up: Stochastic search structure learning in graphical models, \emph{Bayesian Analysis}, 10(2):351-377
+
+George, E.I. and McCulloch, R.E. (1993). Variable selection via Gibbs sampling. \emph{Journal of the American Statistical Association}, 88(423):881-889
+
+Griffin, J.E. and Brown, P.J. (2010) Inference with normal-gamma prior distributions in regression problems. \emph{Bayesian Analysis}, 5(1):171-188
 
 Mohammadi, A. and E. Wit (2015). Bayesian Structure Learning in Sparse Gaussian Graphical Models, \emph{Bayesian Analysis}, 10(1):109-138
+
+Mohammadi, A. and E. Wit (2015). \pkg{BDgraph}: An \code{R} Package for Bayesian Structure Learning in Graphical Models, \emph{arXiv preprint arXiv:1501.05108} 
 }
 
 \author{ Reza Mohammadi }

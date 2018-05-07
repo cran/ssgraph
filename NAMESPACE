@@ -1,5 +1,21 @@
+useDynLib( ssgraph, .registration = TRUE )
 
-importFrom( "stats", "rgamma", "rnorm", "runif" )
-importFrom( "utils", "flush.console" )
+importFrom( "Matrix", "Matrix", "printSpMatrix" )
 
-export( ssgraph )
+importFrom( "igraph", "graph.adjacency", "plot.igraph", "layout.circle" )
+importFrom( "igraph", "make_undirected_graph", "max_cliques" )
+
+importFrom( "grDevices", "dev.new" )
+importFrom( "graphics", "abline", "par", "plot", "text" )
+importFrom( "stats", "qnorm", "rnorm", "sd" )
+
+export( ssgraph,
+        
+		print.ssgraph, 
+		plot.ssgraph, 
+		summary.ssgraph
+        )
+
+S3method( "summary", "ssgraph" )
+S3method( "plot"   , "ssgraph" )
+S3method( "print"  , "ssgraph" )

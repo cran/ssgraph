@@ -1,160 +1,326 @@
 ## ------------------------------------------------------------------------------------------------|
-#     Copyright (C) 2018  Reza Mohammadi
-#
-#     This file is part of ssgraph package.
-#
-#     ssgraph is free software: you can redistribute it and/or modify it under 
-#     the terms of the GNU General Public License as published by the Free 
-#     Software Foundation; see <https://cran.r-project.org/web/licenses/GPL-3>.
-#
-#     Maintainer: Reza Mohammadi <a.mohammadi@uva.nl>
+#     Copyright (C) 2018  Reza Mohammadi                                                           |
+#                                                                                                  |
+#     This file is part of ssgraph package.                                                        |
+#                                                                                                  |
+#     ssgraph is free software: you can redistribute it and/or modify it under                     |
+#     the terms of the GNU General Public License as published by the Free                         |
+#     Software Foundation; see <https://cran.r-project.org/web/licenses/GPL-3>.                    |
+#                                                                                                  |
+#     Maintainer: Reza Mohammadi <a.mohammadi@uva.nl>                                              |
 ## ------------------------------------------------------------------------------------------------|
-#  R code for Graphcial models based on spike and slab priors
+#  R code for Graphcial models based on spike and slab priors                                      |
 ## ------------------------------------------------------------------------------------------------|
-ssgraph = function( data, n = NULL, iter = 5000, burnin = iter / 2, 
-                    v1 = NULL, v2 = NULL, lambda = 1, g.prior = 0.5, 
-                    g.start = "full", sig.start = NULL, print = 100 )
+ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter / 2, 
+                    v1 = 4e-04, v2 = 1, lambda = 1, g.prior = 0.5, 
+                    g.start = "full", sig.start = NULL, print = 1000 )
 {
     if( iter < burnin ) stop( "Number of iteration must be more than number of burn-in" )
-   
+    if( ( g.prior <= 0 ) | ( g.prior >= 1 ) ) stop( "'g.prior' must be between 0 and 1" )   
+    if(  v1 <= 0 ) stop( "'v1' must be more than 0" )
+    if(  v2 <= 0 ) stop( "'v2' must be more than 0" )
+    
     if( class( data ) == "sim" ) data <- data $ data
     
     if( !is.matrix( data ) & !is.data.frame( data ) ) stop( "Data must be a matrix or dataframe" )
     if( is.data.frame( data ) ) data <- data.matrix( data )
-    if( any( is.na( data ) ) ) stop( "ssgraph does not deal with missing values" )	
-
-    dimd <- dim( data )
-    p    <- dimd[ 2 ]
-    if( is.null( n ) ) n <- dimd[1]
-    p1 = p - 1
     
-    if( isSymmetric( data ) )
+    if( any( is.na( data ) ) ) 
     {
-        if ( is.null( n ) ) stop( "Please specify the number of observations 'n'" )
-        cat( "Input is identified as the covriance matrix. \n" )
-        S <- data
+        if( method == "ggm" ) { stop( "ggm method does not deal with missing values. You could choose option method = gcgm" ) }	
+        gcgm_NA = 1
     }else{
-        S <- t( data ) %*% data
+        gcgm_NA = 0
     }
     
-    if( class( g.start ) == "bdgraph" ) G <- g.start $ last_graph
+    dimd <- dim( data )
+    p    <- dimd[ 2 ]
+    if( p < 2 ) stop( "Number of variables/nodes ('p') must be more than or equal with 2" )
+    if( is.null( n ) ) n <- dimd[ 1 ]
+    p1 = p - 1
+    
+    if( method == "gcgm" )
+    {
+        if( isSymmetric( data ) ) stop( "method='gcgm' requires all data" )
+        
+        R <- 0 * data
+        for( j in 1:p ) R[ , j ] = match( data[ , j ], sort( unique( data[ , j ] ) ) ) 
+        R[ is.na(R) ] = 0     # dealing with missing values	
+        
+        # copula for continuous non-Gaussian data
+        if( gcgm_NA == 0 && min( apply( R, 2, max ) ) > ( n - 5 * n / 100 ) )
+        {
+            # copula transfer 
+            data = qnorm( apply( data, 2, rank ) / ( n + 1 ) )
+            
+            method = "ggm"
+        }else{	
+            # for non-Gaussian data
+            Z                  <- qnorm( apply( data, 2, rank, ties.method = "random" ) / ( n + 1 ) )
+            Zfill              <- matrix( rnorm( n * p ), n, p )       # for missing values
+            Z[ is.na( data ) ] <- Zfill[ is.na( data ) ]               # for missing values
+            Z                  <- t( ( t( Z ) - apply( Z, 2, mean ) ) / apply( Z, 2, sd ) )
+            S                  <- t( Z ) %*% Z
+        }
+    } 
+    
+    if( method == "ggm" ) 
+    {
+        if( isSymmetric( data ) )
+        {
+            if ( is.null( n ) ) stop( "Please specify the number of observations 'n'" )
+            cat( "Input is identified as the covriance matrix. \n" )
+            S <- data
+        }else{
+            S <- t( data ) %*% data
+        }
+    }
+    
+    
+    if( class( g.start ) == "ssgraph" ) G <- g.start $ last_graph
     if( class( g.start ) == "sim"     ) G <- as.matrix( g.start $ G )
     if( class( g.start ) == "character" && g.start == "empty"  ) G = matrix( 0, p, p )
     if( class( g.start ) == "character" && g.start == "full"   ) G = matrix( 1, p, p )
     if( is.matrix( g.start ) ) G = g.start
     if( ( sum( G == 0 ) + sum( G == 1 ) ) != ( p ^ 2 ) ) stop( "Element of 'g.start', as a matrix, must have 0 or 1" )
-
+    
     diag( G ) = 0    
     if( !isSymmetric( G ) ) G = G + t( G )
     
     if( is.null( sig.start ) ) sigma = S else sigma = sig.start
     K = solve( sigma )      # precision or concentration matrix (omega)
     
-    if( is.null( v1 ) ) v1 = 0.02 ^ 2
-    if( is.null( v2 ) ) v2 = ( 50 ^ 2 ) * v1
-    pii   = g.prior
-
-    V = matrix( v1, p, p )
-    V[ G == 1 ] = v2
-    diag( V ) = 0
-
-    nmc   = iter - burnin
-    p_hat = matrix( 0, p, p )
-    K_hat = matrix( 0, p, p )
+    nmc     = iter - burnin
+    p_links = matrix( 0, p, p )
+    K_hat   = matrix( 0, p, p )
     
-    a_gam   = 0.5 * n + 1 
-    sqrt_v1 = sqrt( v1 )
-    sqrt_v2 = sqrt( v2 )
-    one_pii = 1 - pii
+    a_gam       = 0.5 * n + 1 
+    sqrt_v1     = sqrt( v1 )
+    sqrt_v2     = sqrt( v2 )
+    g_prior     = g.prior
+    one_g_prior = 1 - g_prior
     
-    ind_all = matrix( 0, nrow = p1, ncol = p ) 
-    for( i in 1:p  ) ind_all[ , i ] = ( 1:p )[ -i ]
-    
-    for( i_mcmc in 1 : iter )    
+    if( method == "ggm" )
     {
-        if ( i_mcmc %% print == 0 )
-        {
-            cat( paste( c( " iter = ", i_mcmc ), collapse = "" ), "\r" )
-            flush.console()	
-        }    
+        #void ggm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[], int *p, 
+        #                        double K_hat[], double p_links[], int *n,
+        #                        double *v1, double *v2, double *lambda, double *g_prior, int *print )        
         
-        # sample sigma and C = inv( sigma )        
-        for( i in 1:p  )
-        {
-            ind_noi = ind_all[ , i ]
-            
-            # --- updating precision matrix -------------------------------------------------------|
-            V_12     = V[ ind_noi, i ]
-            sigma_11 = sigma[ ind_noi, ind_noi ] 
-            sigma_12 = sigma[ ind_noi, i       ]
-            
-            K_11_inv = sigma_11 - sigma_12 %*% t( sigma_12 ) / sigma[ i, i ]
-            
-            K_u = ( S[ i, i ] + lambda ) * K_11_inv + diag( 1 / V_12 )
-            #K_u = ( K_u + t( K_u ) ) / 2   # check ?? 
-            
-            ## --- sampling beta from N( mean, Ci ) -----------------------------------------------|            
-            # Ci = solve( K_u )
-            chol_K_u     = chol( K_u )
-            inv_chol_K_u = solve( chol_K_u )
-            Ci           = inv_chol_K_u %*% t( inv_chol_K_u )
-            #chol_Ci <- chol( Ci )
-            chol_Ci  <- inv_chol_K_u
-            
-            mean    <- -Ci %*% S[ ind_noi, i ]
-            z_N     <- matrix( rnorm( p1 ), nrow = p1, ncol = 1 )
-            beta    <- t( chol_Ci ) %*% z_N + mean
-            ## ------------------------------------------------------------------------------------|            
-            
-            K[ ind_noi, i       ] = beta
-            K[ i,       ind_noi ] = beta
-            
-            b_gam = ( S[ i, i ] + lambda ) * 0.5
-            gam   = rgamma( n = 1, shape = a_gam, scale = 1 / b_gam )
-            
-            K[ i, i ] = gam + t( beta ) %*% K_11_inv %*% beta
-            
-            # --- updating graph matrix -----------------------------------------------------------|
-            w1 = one_pii * exp( - 0.5 * ( ( beta ^ 2 ) / v1 ) ) / sqrt_v1
-            w2 = pii     * exp( - 0.5 * ( ( beta ^ 2 ) / v2 ) ) / sqrt_v2
-            
-            prob_e = w2 / ( w1 + w2 )
-            
-            G_12 = ( runif( p1 ) < prob_e ) * 1
-            
-            G[ ind_noi, i       ] = G_12;
-            G[ i,       ind_noi ] = G_12;
-            
-            # --- updating matrix V according to one-column change of graph matrix ----------------|
-            v              = G_12 * v2
-            v[ G_12 == 0 ] = v1
-            
-            V[ ind_noi, i       ] = v;        
-            V[ i,       ind_noi ] = v;
-            
-            # --- updating Covariance matrix according to one-column change of precision matrix ---|
-            K_11_inv_X_beta = K_11_inv %*% beta
-            
-            sigma[ ind_noi, ind_noi ] = K_11_inv + K_11_inv_X_beta %*% t( K_11_inv_X_beta ) / gam; 
-            sigma_12                  = -K_11_inv_X_beta / gam     
-            sigma[ ind_noi, i ]       = sigma_12     
-            sigma[ i, ind_noi ]       = t( sigma_12 )
-            sigma[ i, i ]             = 1 / gam
-            # -------------------------------------------------------------------------------------|
-        }
-        
-        if( i_mcmc > burnin )
-        {
-            p_hat = p_hat + G
-            K_hat = K_hat + K
-        }
+        result = .C( "ggm_spike_slab_ma", as.integer(iter), as.integer(burnin), G = as.integer(G), K = as.double(K), as.double(S), as.integer(p), 
+                     K_hat = as.double(K_hat), p_links = as.double(p_links), as.integer(n),
+                     as.double(v1), as.double(v2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
+    
+        label   = colnames( data )
+        p_links = matrix( result $ p_links, p, p, dimnames = list( label, label ) ) 
+        K_hat   = matrix( result $ K_hat  , p, p, dimnames = list( label, label ) ) 
+
+        #p_links = p_links / ( iter - burnin )
+        #K_hat   = K_hat / ( iter - burnin )
     }
     
-    diag( p_hat ) = nmc
-    p_hat[ lower.tri( p_hat ) ] = 0
-    output = list( p_links = p_hat / nmc, K_hat = K_hat / nmc )
+    if( method == "gcgm" )
+    {
+        #void gcgm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[], int *p, 
+        #                         double K_hat[], double p_links[], int *n,
+        #                         double Z[], int R[], int *gcgm, 
+        #                         double *v1, double *v2, double *lambda, double *g_prior, int *print )
+        
+        result = .C( "gcgm_spike_slab_ma", as.integer(iter), as.integer(burnin), G = as.integer(G), K = as.double(K), as.double(S), as.integer(p), 
+                     K_hat = as.double(K_hat), p_links = as.double(p_links), as.integer(n),
+                     as.double(Z), as.integer(R), as.integer(gcgm_NA),
+                     as.double(v1), as.double(v2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
+        
+        label   = colnames( data )
+        p_links = matrix( result $ p_links, p, p, dimnames = list( label, label ) ) 
+        K_hat   = matrix( result $ K_hat  , p, p, dimnames = list( label, label ) ) 
+    }
+    
+    diag( p_links ) = nmc
+    p_links[ lower.tri( p_links ) ] = 0
+    output = list( p_links = p_links / nmc, K_hat = K_hat / nmc )
     
     class( output ) = "ssgraph"
     return( output )
 }
-   
+
+## ------------------------------------------------------------------------------------------------|
+#    Summary of ssgraph output
+## ------------------------------------------------------------------------------------------------|
+summary.ssgraph = function( object, round = 2, vis = TRUE, ... )
+{
+    p_links    = object $ p_links
+    p          = nrow( object $ last_graph )
+    label      = colnames( object $ last_graph )
+    selected_g = matrix( 0, p, p, dimnames = list( label, label ) )	
+    
+    if( !is.null( object $ graph_weights ) )
+    {
+        sample_graphs = object $ sample_graphs
+        graph_weights = object $ graph_weights
+        max_gWeights  = max( graph_weights )
+        sum_gWeights  = sum( graph_weights )
+        max_prob_G    = max_gWeights / sum_gWeights
+        
+        if ( is.null( label ) ) label <- as.character( 1 : p )
+        vec_G    <- c( rep( 0, p * ( p - 1 ) / 2 ) )		
+        indG_max <- sample_graphs[ which( graph_weights == max_gWeights ) ]
+        vec_G[ which( unlist( strsplit( as.character( indG_max ), "" ) ) == 1 ) ] = 1
+        selected_g[ upper.tri( selected_g ) ] <- vec_G 
+    }else{
+        selected_g[ p_links >  0.5 ] = 1
+        selected_g[ p_links <= 0.5 ] = 0
+    }
+    
+    if( vis )
+    {
+        # plot selected graph (graph with the highest posterior probability)
+        G  <- igraph::graph.adjacency( selected_g, mode = "undirected", diag = FALSE )
+        
+        if( !is.null( object $ graph_weights ) ) 
+        {
+            op       = par( mfrow = c( 2, 2 ), pty = "s", omi = c( 0.3, 0.3, 0.3, 0.3 ), mai = c( 0.3, 0.3, 0.3, 0.3 ) ) 
+            subGraph = paste( c( "Posterior probability = ", max_prob_G ), collapse = "" )
+        }else{
+            subGraph = "Selected graph with edge posterior probability = 0.5"
+        }
+        
+        if( p < 20 ) size = 15 else size = 2
+        igraph::plot.igraph( G, layout = layout.circle, main = "Selected graph", sub = subGraph, vertex.color = "white", vertex.size = size, vertex.label.color = 'black' )
+        
+        if( !is.null( object $ graph_weights ) )
+        {
+            # plot posterior distribution of graph
+            plot( x = 1 : length( graph_weights ), y = graph_weights / sum_gWeights, type = "h", main = "Posterior probability of graphs",
+                  ylab = "Pr(graph|data)", xlab = "graph" )
+            
+            abline( h = max_prob_G, col = "red" )
+            text( which( max_gWeights == graph_weights )[1], max_prob_G, "Pr(selected graph|data)", col = "gray60", adj = c( 0, +1 ) )
+            
+            # plot posterior distribution of graph size
+            sizesample_graphs = sapply( sample_graphs, function( x ) length( which( unlist( strsplit( as.character(x), "" ) ) == 1 ) ) )
+            xx       <- unique( sizesample_graphs )
+            weightsg <- vector()
+            
+            for( i in 1 : length(xx) ) weightsg[i] <- sum( graph_weights[ which( sizesample_graphs == xx[i] ) ] )
+            
+            plot( x = xx, y = weightsg / sum_gWeights, type = "h", main = "Posterior probability of graphs size", ylab = "Pr(graph size|data)", xlab = "Graph size" )
+            
+            # plot trace of graph size
+            all_graphs     = object $ all_graphs
+            sizeall_graphs = sizesample_graphs[ all_graphs ]
+            
+            plot( x = 1 : length( all_graphs ), sizeall_graphs, type = "l", main = "Trace of graph size", ylab = "Graph size", xlab = "Iteration" )
+            
+            abline( h = sum( selected_g ), col = "red" )	  
+            
+            par( op )
+        }
+    }
+    
+    # p_links
+    if( !is.null( object $ graph_weights ) )
+    {
+        pvec <- 0 * vec_G
+        for( i in 1 : length( sample_graphs ) )
+        {
+            which_edge       <- which( unlist( strsplit( as.character( sample_graphs[i] ), "" ) ) == 1 )
+            pvec[which_edge] <- pvec[which_edge] + graph_weights[i]
+        }
+        p_links                     <- 0 * selected_g
+        p_links[upper.tri(p_links)] <- pvec / sum_gWeights
+    }
+    
+    K_hat = object $ K_hat
+    
+    if( is.null( K_hat ) )			  
+        return( list( selected_g = Matrix( selected_g, sparse = TRUE ), p_links = Matrix( round( p_links, round ), sparse = TRUE ) ) )
+    else
+        return( list( selected_g = Matrix( selected_g, sparse = TRUE ), p_links = Matrix( round( p_links, round ), sparse = TRUE ), K_hat = round( K_hat, round ) ) )
+}  
+
+## ------------------------------------------------------------------------------------------------|
+#    Plot for class ssgraph
+## ------------------------------------------------------------------------------------------------|
+plot.ssgraph = function( x, cut = NULL, number.g = 1, layout = layout.circle, ... )
+{
+    if( !is.matrix( x ) )
+    {
+        if( is.null( cut ) ) cut = 0.5
+ 
+        if( ( cut < 0 ) || ( cut > 1 ) ) stop( "Value of 'cut' must be between 0 and 1." )
+        
+        p_links = x $ p_links
+       # if( is.null( p_links ) ) p_links = BDgraph::plinks( x )
+        selected_g                   = 0 * p_links
+        selected_g[ p_links > cut ]  = 1
+        selected_g[ p_links <= cut ] = 0		
+        
+        G = igraph::graph.adjacency( selected_g, mode = "undirected", diag = FALSE )
+        igraph::plot.igraph( G, layout = layout, main = "Selected graph", sub = paste0( "Edge posterior probability = ", cut ), ... )	   		
+    }else{
+        G = igraph::graph.adjacency( x, mode = "undirected", diag = FALSE )
+        igraph::plot.igraph( G, layout = layout, main = "Graph with highest posterior probability", ... )	   		
+    }
+}
+
+## ------------------------------------------------------------------------------------------------|
+#    Print of the ssgraph output
+## ------------------------------------------------------------------------------------------------|
+print.ssgraph = function( x, round = 2, ... )
+{
+    if( !is.matrix( x ) )
+    {
+        p_links = x $ p_links
+        
+        if( !is.null( x $ graph_weights ) )
+        {
+            p             = nrow( x $ last_graph )
+            sample_graphs  = x $ sample_graphs
+            graph_weights  = x $ graph_weights
+            # selected graph
+            max_gWeights  = max( graph_weights )
+            sum_gWeights  = sum( graph_weights )
+            vec_G         = c( rep( 0, p * ( p - 1 ) / 2 ) )
+            indG_max      = sample_graphs[ which( graph_weights == max_gWeights )[1] ]
+            vec_G[ which( unlist( strsplit( as.character( indG_max ), "" ) ) == 1 ) ] = 1
+            
+            label      = colnames( x $ last_graph )
+            selected_g = matrix( 0, p, p, dimnames = list( label, label ) )	
+            selected_g[upper.tri(selected_g)] = vec_G
+            
+        }else{
+            selected_g                   = 0 * p_links
+            selected_g[ p_links > 0.5 ]  = 1
+            selected_g[ p_links <= 0.5 ] = 0	
+        }
+        
+    }else{
+        selected_g = unclass( x )
+    }
+    
+    cat( paste( "" ), fill = TRUE )
+    cat( paste( "Adjacency matrix of selected graph" ), fill = TRUE )
+    cat( paste( "" ), fill = TRUE )
+    
+    if( !is.matrix( x ) )
+    {	
+        printSpMatrix( Matrix( selected_g, sparse = TRUE ), col.names = TRUE, note.dropping.colnames = FALSE )
+        cat( paste( "" ), fill = TRUE )
+        cat( paste( "Size of selected graph = ", sum( selected_g ) ), fill = TRUE )
+        
+    }else{
+        print( selected_g )
+        cat( paste( "" ), fill = TRUE )
+        cat( paste( "Size of selected graph = ", sum( selected_g ) / 2 ), fill = TRUE )	
+    }
+    
+    if( !is.matrix( x ) )
+    {
+        if( !is.null( x $ graph_weights ) )
+            cat( paste( "Posterior probability of selected graph = ", max_gWeights / sum_gWeights ), fill = TRUE )  
+        else
+            cat( paste( "Edge posterior probability of selected graph = ", 0.5 ), fill = TRUE )
+    }
+    
+    cat( paste( "" ), fill = TRUE )
+} 
