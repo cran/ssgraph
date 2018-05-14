@@ -160,10 +160,11 @@ void copula_NA( double Z[], double K[], int R[], int *n, int *p )
 // Calculating S for the MCMC sampling algorithm
 void get_S( double K[], double Z[], int R[], double S[], int *gcgm, int *n, int *p )
 {
-	int gcgm_check = *gcgm, dim = *p, pxp = dim * dim;
-
+	// int gcgm_check = *gcgm, dim = *p, pxp = dim * dim;
+    int dim = *p;
+        
 	//if( gcgm_check == 0 ) copula( Z, K, R, n, &dim ); else	copula_NA( Z, K, R, n, &dim );
-	( gcgm_check == 0 ) ? copula( Z, K, R, n, &dim ) : copula_NA( Z, K, R, n, &dim );
+	( *gcgm == 0 ) ? copula( Z, K, R, n, &dim ) : copula_NA( Z, K, R, n, &dim );
 	
 	// S <- t(Z) %*% Z
 	// Here, I'm using Ds instead of S, for saving memory

@@ -7,15 +7,15 @@ Check these declarations against the C/Fortran source code.
 
 /* .C calls */
 extern void gcgm_spike_slab_ma(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void gcgm_spike_slab_map(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void ggm_spike_slab_ma(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void inverse(void *, void *, void *);
-extern void rmvnorm_c(void *, void *, void *, void *);
+extern void ggm_spike_slab_map(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
 static const R_CMethodDef CEntries[] = {
-    {"gcgm_spike_slab_ma", (DL_FUNC) &gcgm_spike_slab_ma, 17},
-    {"ggm_spike_slab_ma",  (DL_FUNC) &ggm_spike_slab_ma,  14},
-    {"inverse",            (DL_FUNC) &inverse,             3},
-    {"rmvnorm_c",          (DL_FUNC) &rmvnorm_c,           4},
+    {"gcgm_spike_slab_ma",  (DL_FUNC) &gcgm_spike_slab_ma,  17},
+    {"gcgm_spike_slab_map", (DL_FUNC) &gcgm_spike_slab_map, 22},
+    {"ggm_spike_slab_ma",   (DL_FUNC) &ggm_spike_slab_ma,   14},
+    {"ggm_spike_slab_map",  (DL_FUNC) &ggm_spike_slab_map,  19},
     {NULL, NULL, 0}
 };
 

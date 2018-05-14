@@ -6,5 +6,10 @@
 
 	* The sampling algorithm is implemented in C++ with parallel implementation using OpenMP. 
 	* Options "method" is added to function "ssgraph()" which is for both GGMs and GCGMs mehtods.
-    * Functions "plot.ssgraph", "summary.ssgraph", and "print.ssgraph" is added.
+	* Functions "plot.ssgraph", "summary.ssgraph", and "print.ssgraph" are added.
+    
+- CHANGES IN VERSION 1.2
+
+	* Options "save.all" is added to function "ssgraph()".
+
     

@@ -3,7 +3,7 @@
 //                                                                                                 |
 //     This file is part of ssgraph package.                                                       |
 //                                                                                                 |
-//     BDgraph is free software: you can redistribute it and/or modify it under                    |
+//     ssgraph is free software: you can redistribute it and/or modify it under                    |
 //     the terms of the GNU General Public License as published by the Free                        |
 //     Software Foundation; see <https://cran.r-project.org/web/licenses/GPL-3>.                   |
 //                                                                                                 |

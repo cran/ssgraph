@@ -8,7 +8,7 @@
 \usage{
 ssgraph( data, n = NULL, method = "ggm", iter = 5000, burnin = iter / 2, 
          v1 = 4e-04, v2 = 1, lambda = 1, g.prior = 0.5, g.start = "full", 
-         sig.start = NULL, print = 1000 )
+         sig.start = NULL, save.all = FALSE, print = 1000, cores = "all" )
 }
 
 \arguments{
@@ -32,9 +32,9 @@ ssgraph( data, n = NULL, method = "ggm", iter = 5000, burnin = iter / 2,
 	\item{iter}{The number of iteration for the sampling algorithm.}
 	\item{burnin}{The number of burn-in iteration for the sampling algorithm.}
 	
-	\item{v1}{ Variance for the the prior of precision matrix for the places that there is no link in the graph. }
-	\item{v2}{ Variance for the the prior of precision matrix for the places that there is link in the graph. }
-	\item{lambda}{ Value for the diagonal element of the prior of precision matrix. }
+	\item{v1}{ Value for the variance of the the prior of precision matrix for the places that there is no link in the graph. }
+	\item{v2}{ Value for the variance of the the prior of precision matrix for the places that there is link in the graph. }
+	\item{lambda}{ Value for the parameter of diagonal element of the prior of precision matrix. }
 
 	\item{g.prior}{
 		For determining the prior distribution of each edge in the graph. 
@@ -43,17 +43,27 @@ ssgraph( data, n = NULL, method = "ggm", iter = 5000, burnin = iter / 2,
 	}
 
 	\item{g.start}{
-		Corresponds to a starting point of the graph. It could be \code{"empty"} and \code{"full"}. 
-		Option \code{"empty"} means the initial graph is an empty graph and \code{"full"} (default) means a full graph. 
-		It also could be an object with \code{S3} class \code{"bdgraph"}; 
-		with this option we could run the sampling algorithm from the last objects of previous run.     
+		Corresponds to a starting point of the graph. It could be an (\eqn{p \times p}) matrix, \code{"empty"} (default), or \code{"full"}. 
+		Option \code{"empty"} means the initial graph is an empty graph and \code{"full"} means a full graph. 
+		It also could be an object with \code{S3} class \code{"ssgraph"} or \code{"bdgraph"}; 
+		this option can be used to run the sampling algorithm from the last objects of previous run (see examples).     
 	} 
 	
 	\item{sig.start}{
 		Corresponds to a starting point of the covariance matrix. It must be positive definite matrix.     
 	} 
 
+	\item{save.all}{
+		Logical: if FALSE (default), the adjacency matrices are NOT saved. 
+		If TRUE, the adjacency matrices after burn-in are saved.
+	}
+
 	\item{print}{ Value to see the number of iteration for the MCMC algorithm. }	
+	
+	\item{cores}{ The number of cores to use for parallel execution. 
+	   The default is to use \code{"all"} CPU cores of the computer; 
+	   it can also be a number, e.g. \code{cores=2} means 2 CPU cores to use for parallel execution.
+	   }	
 }
 
 \value{
@@ -62,6 +72,17 @@ ssgraph( data, n = NULL, method = "ggm", iter = 5000, burnin = iter / 2,
 	\item{p_links}{ An upper triangular matrix which corresponds the estimated posterior probabilities of all possible links. }
 	
 	\item{K_hat}{ The posterior estimation of the precision matrix. }
+
+	For the case "save.all = TRUE" is returned:
+
+	\item{sample_graphs}{ A vector of strings which includes the adjacency matrices of visited graphs after burn-in.}
+	\item{graph_weights}{ A vector which includes the counted numbers of visited graphs after burn-in. }
+
+	\item{all_graphs}{A vector which includes the identity of the adjacency matrices for all iterations after burn-in. 
+		  It is needed for monitoring the convergence of the MCMC sampling algorithm.}
+
+	\item{all_weights}{A vector which includes the waiting times for all iterations after burn-in. 
+	                   It is needed for monitoring the convergence of the MCMC sampling algorithm.}
 }
 
 \references{
@@ -79,17 +100,23 @@ Mohammadi, A. and E. Wit (2015). \pkg{BDgraph}: An \code{R} Package for Bayesian
 \author{ Reza Mohammadi }
 
 \examples{
-p <- 6
-n <- 3 * p
+# Generating multivariate normal data from a 'random' graph
+data.sim <- bdgraph.sim( n = 80, p = 7, prob = 0.5, vis = TRUE )
 
-K      <- toeplitz( c( 1, 0.5, rep( 0, p - 2 ) ) )
-K[1,p] <- 0.4
-K[p,1] <- 0.4
+# Running algorithm based on GGMs
+ssgraph.obj <- ssgraph( data = data.sim, iter = 1000 )
 
-S      <- n * solve( K )
+summary( ssgraph.obj )
 
-out_ss <- ssgraph( data = S, n = n, iter = 1000 )
+# To compare the result with true graph
+compare( data.sim, ssgraph.obj, colnames = c("True graph", "ssgraph"), vis = TRUE )
 
-round( out_ss $ p_links, 2 )
-round( out_ss $ K_hat, 2 )
+\dontrun{
+
+# Running algorithm with starting points from previous run
+ssgraph.obj2 <- ssgraph( data = data.sim, iter = 5000, g.start = ssgraph.obj )
+    
+compare( data.sim, ssgraph.obj, ssgraph.obj2, 
+         colnames = c( "True graph", "Frist run", "Second run" ) )
+}
 }

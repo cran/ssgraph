@@ -36,8 +36,6 @@ Mohammadi, A. and E. Wit (2015). \pkg{BDgraph}: An \code{R} Package for Bayesian
 
 \examples{
 \dontrun{
-require( "BDgraph" )
-
 # Generating multivariate normal data from a 'random' graph
 dat <- bdgraph.sim( n = 50, p = 6, size = 7, vis = TRUE )
    

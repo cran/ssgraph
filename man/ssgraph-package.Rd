@@ -15,7 +15,7 @@ To speed up the computations, the computationally intensive tasks of the package
 Whenever using this package, please cite as
 \preformatted{
 Mohammadi R. (2018). ssgraph: Bayesian Graphical Estimation using Spike-and-Slab Priors, 
-R package version 1.1, https://cran.r-project.org/package=ssgraph
+R package version 1.2, https://cran.r-project.org/package=ssgraph
 }
 }
 
@@ -31,6 +31,24 @@ Griffin, J.E. and Brown, P.J. (2010) Inference with normal-gamma prior distribut
 Mohammadi, A. and E. Wit (2015). Bayesian Structure Learning in Sparse Gaussian Graphical Models, \emph{Bayesian Analysis}, 10(1):109-138
 
 Mohammadi, A. and E. Wit (2015). \pkg{BDgraph}: An \code{R} Package for Bayesian Structure Learning in Graphical Models, \emph{arXiv preprint arXiv:1501.05108} 
+}
+
+\examples{
+\dontrun{
+
+library( ssgraph )
+
+# Generating multivariate normal data from a 'random' graph
+data.sim <- bdgraph.sim( n = 100, p = 8, size = 10, vis = TRUE )
+
+# Running algorithm based on GGMs
+ssgraph.obj <- ssgraph( data = data.sim, iter = 5000 )
+
+summary( ssgraph.obj )
+
+# To compare the result with true graph
+compare( data.sim, ssgraph.obj, colnames = c("True graph", "ssgraph"), vis = TRUE )
+}
 }
 
 \keyword{ Package, ssgraph, Bayesian Structure Learning, Gaussian Graphical Models, Gaussian Copula Graphical Models, Spike and Slab Priors }
