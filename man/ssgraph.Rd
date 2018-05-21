@@ -7,8 +7,8 @@
 }
 \usage{
 ssgraph( data, n = NULL, method = "ggm", iter = 5000, burnin = iter / 2, 
-         v1 = 4e-04, v2 = 1, lambda = 1, g.prior = 0.5, g.start = "full", 
-         sig.start = NULL, save.all = FALSE, print = 1000, cores = "all" )
+         var1 = 4e-04, var2 = 1, lambda = 1, g.prior = 0.5, g.start = "full", 
+         sig.start = NULL, save.all = FALSE, print = 1000, cores = 2 )
 }
 
 \arguments{
@@ -32,8 +32,8 @@ ssgraph( data, n = NULL, method = "ggm", iter = 5000, burnin = iter / 2,
 	\item{iter}{The number of iteration for the sampling algorithm.}
 	\item{burnin}{The number of burn-in iteration for the sampling algorithm.}
 	
-	\item{v1}{ Value for the variance of the the prior of precision matrix for the places that there is no link in the graph. }
-	\item{v2}{ Value for the variance of the the prior of precision matrix for the places that there is link in the graph. }
+	\item{var1}{ Value for the variance of the the prior of precision matrix for the places that there is no link in the graph. }
+	\item{var2}{ Value for the variance of the the prior of precision matrix for the places that there is link in the graph. }
 	\item{lambda}{ Value for the parameter of diagonal element of the prior of precision matrix. }
 
 	\item{g.prior}{
@@ -61,8 +61,8 @@ ssgraph( data, n = NULL, method = "ggm", iter = 5000, burnin = iter / 2,
 	\item{print}{ Value to see the number of iteration for the MCMC algorithm. }	
 	
 	\item{cores}{ The number of cores to use for parallel execution. 
-	   The default is to use \code{"all"} CPU cores of the computer; 
-	   it can also be a number, e.g. \code{cores=2} means 2 CPU cores to use for parallel execution.
+	   The default is to use \code{2} CPU cores of the computer.
+	   The case \code{cores="all"} means all CPU cores to use for parallel execution. 
 	   }	
 }
 

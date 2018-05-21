@@ -8,7 +8,7 @@ dnl Autoconf Configure Script Exception, version 3.0.
 
 AC_PREREQ(2.62)
 
-AC_INIT([ssgraph],[1.1],[],[ssgraph],[])
+AC_INIT([ssgraph],[1.3],[],[ssgraph],[])
 
 CXX1X=`"${R_HOME}/bin/R" CMD config CXX1X`
 CXX1XSTD=`"${R_HOME}/bin/R" CMD config CXX1XSTD`

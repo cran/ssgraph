@@ -11,23 +11,24 @@
 ## ------------------------------------------------------------------------------------------------|
 #  R code for Graphcial models based on spike and slab priors                                      |
 ## ------------------------------------------------------------------------------------------------|
+
 ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter / 2, 
-                    v1 = 4e-04, v2 = 1, lambda = 1, g.prior = 0.5, 
+                    var1 = 4e-04, var2 = 1, lambda = 1, g.prior = 0.5, 
                     g.start = "full", sig.start = NULL, save.all = FALSE, print = 1000, 
-                    cores = "all" )
+                    cores = 2 )
 {
     if( iter < burnin ) stop( "Number of iteration must be more than number of burn-in" )
     if( ( g.prior <= 0 ) | ( g.prior >= 1 ) ) stop( "'g.prior' must be between 0 and 1" )   
-    if(  v1 <= 0 ) stop( "'v1' must be more than 0" )
-    if(  v2 <= 0 ) stop( "'v2' must be more than 0" )
+    if(  var1 <= 0 ) stop( "'var1' must be more than 0" )
+    if(  var2 <= 0 ) stop( "'var2' must be more than 0" )
 
-    #BDgraph::check.os( os = 2 )	
-    #if( cores == "all" ) cores = detect_cores()
+    check.os( os = 2 )	
+    if( cores == "all" ) cores = BDgraph::detect_cores()
     
-    #tmp   <- .C( "check_nthread", cores = as.integer(cores), PACKAGE = "BDgraph" )
-    #cores <- tmp $ cores
+    tmp   <- .C( "check_nthread", cores = as.integer(cores), PACKAGE = "ssgraph" )
+    cores <- tmp $ cores
     
-    #.C( "omp_set_num_cores", as.integer( cores ), PACKAGE = "BDgraph" )
+    .C( "omp_set_num_cores", as.integer( cores ), PACKAGE = "ssgraph" )
     
     burnin <- floor( burnin )
     
@@ -48,15 +49,14 @@ ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter /
     p    <- dimd[ 2 ]
     if( p < 3 ) stop( "Number of variables/nodes ('p') must be more than or equal with 2" )
     if( is.null( n ) ) n <- dimd[ 1 ]
-    p1 = p - 1
-    
+
     if( method == "gcgm" )
     {
         if( isSymmetric( data ) ) stop( "method='gcgm' requires all data" )
         
         R <- 0 * data
         for( j in 1:p ) R[ , j ] = match( data[ , j ], sort( unique( data[ , j ] ) ) ) 
-        R[ is.na(R) ] = 0     # dealing with missing values	
+        R[ is.na( R ) ] = 0     # dealing with missing values	
         
         # copula for continuous non-Gaussian data
         if( gcgm_NA == 0 && min( apply( R, 2, max ) ) > ( n - 5 * n / 100 ) )
@@ -142,9 +142,6 @@ ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter /
     p_links = matrix( 0, p, p )
     K_hat   = matrix( 0, p, p )
     
-    a_gam       = 0.5 * n + 1 
-    sqrt_v1     = sqrt( v1 )
-    sqrt_v2     = sqrt( v2 )
     g_prior     = g.prior
     one_g_prior = 1 - g_prior
 
@@ -158,7 +155,7 @@ ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter /
         {
              result = .C( "ggm_spike_slab_ma", as.integer(iter), as.integer(burnin), G = as.integer(G), K = as.double(K), as.double(S), as.integer(p), 
                          K_hat = as.double(K_hat), p_links = as.double(p_links), as.integer(n),
-                         as.double(v1), as.double(v2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
+                         as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
         }
         
         if( method == "gcgm" )
@@ -166,7 +163,7 @@ ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter /
              result = .C( "gcgm_spike_slab_ma", as.integer(iter), as.integer(burnin), G = as.integer(G), K = as.double(K), as.double(S), as.integer(p), 
                          K_hat = as.double(K_hat), p_links = as.double(p_links), as.integer(n),
                          as.double(Z), as.integer(R), as.integer(gcgm_NA),
-                         as.double(v1), as.double(v2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
+                         as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
         }
     }else{
         if( method == "ggm" )
@@ -175,7 +172,7 @@ ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter /
                          K_hat = as.double(K_hat), p_links = as.double(p_links), as.integer(n),
                          all_graphs = as.integer(all_graphs), all_weights = as.double(all_weights), 
                          sample_graphs = as.character(sample_graphs), graph_weights = as.double(graph_weights), size_sample_g = as.integer(size_sample_g),
-                         as.double(v1), as.double(v2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
+                         as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
         }
         
         if( method == "gcgm" )
@@ -185,7 +182,7 @@ ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter /
                          all_graphs = as.integer(all_graphs), all_weights = as.double(all_weights), 
                          sample_graphs = as.character(sample_graphs), graph_weights = as.double(graph_weights), size_sample_g = as.integer(size_sample_g),
                          as.double(Z), as.integer(R), as.integer(gcgm_NA),
-                         as.double(v1), as.double(v2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
+                         as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
         }
     }
 ## ------------------------------------------------------------------------------------------------|
