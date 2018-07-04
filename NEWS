@@ -1,15 +1,24 @@
  
-     ssgraph NEWS
----------------------------------------------------------------------------------------------------|
+|--------------------------------------------------------------------------------------------------|
+|    >>>>> ssgraph NEWS                                                                            |
+|--------------------------------------------------------------------------------------------------|
 
 - CHANGES IN VERSION 1.1
 
 	* The sampling algorithm is implemented in C++ with parallel implementation using OpenMP. 
-	* Options "method" is added to function "ssgraph()" which is for both GGMs and GCGMs mehtods.
+	* Option "method" is added to function "ssgraph()" which is for both GGMs and GCGMs mehtods.
 	* Functions "plot.ssgraph", "summary.ssgraph", and "print.ssgraph" are added.
     
 - CHANGES IN VERSION 1.2
 
-	* Options "save.all" is added to function "ssgraph()".
+	* Option "save.all" is added to function "ssgraph()".
+
+- CHANGES IN VERSION 1.4
+
+	* Option "is.discrete" is added to function "ssgraph()".
+
+
+
+
 
     

@@ -6,9 +6,10 @@
 	This function has a sampling algorithm for Bayesian model determination in undirected graphical models, based on spike-and-slab priors. 
 }
 \usage{
-ssgraph( data, n = NULL, method = "ggm", iter = 5000, burnin = iter / 2, 
-         var1 = 4e-04, var2 = 1, lambda = 1, g.prior = 0.5, g.start = "full", 
-         sig.start = NULL, save.all = FALSE, print = 1000, cores = 2 )
+ssgraph( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5000, 
+         burnin = iter / 2, var1 = 4e-04, var2 = 1, lambda = 1, g.prior = 0.5, 
+         g.start = "full", sig.start = NULL, save.all = FALSE, print = 1000, 
+         cores = 2 )
 }
 
 \arguments{
@@ -29,6 +30,8 @@ ssgraph( data, n = NULL, method = "ggm", iter = 5000, burnin = iter / 2,
 		(e.g. continuous non-Gaussian, discrete, or mixed dataset).
 	}
 	  
+	\item{is.discrete}{ For the case \code{method = "gcgm"}, a vector with binary values in which \eqn{1} for discrete variables. }
+	
 	\item{iter}{The number of iteration for the sampling algorithm.}
 	\item{burnin}{The number of burn-in iteration for the sampling algorithm.}
 	

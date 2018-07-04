@@ -20,7 +20,7 @@ extern "C" {
 // ------------------------------------------------------------------------------------------------|
 void gcgm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[], int *p, 
             double K_hat[], double p_links[], int *n,
-            double Z[], int R[], int *gcgm, 
+            double Z[], int R[], int is_discrete[], int *gcgm, 
             double *v1, double *v2, double *lambda, double *g_prior, int *print )
 {
     double var_1    = *v1;
@@ -67,7 +67,7 @@ void gcgm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[]
 
         //----- STEP 1: copula --------------------------------------------------------------------|		
         
-        get_S( K, Z, R, S, gcgm, n, &dim );
+        get_S( K, Z, R, is_discrete, S, gcgm, n, &dim );
         
         //----- STEP 2: updating graph G and precision matrix K, row by row -----------------------|		
        
@@ -193,7 +193,7 @@ void gcgm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[
                          double K_hat[], double p_links[], int *n,
                          int all_graphs[], double all_weights[], 
                          char *sample_graphs[], double graph_weights[], int *size_sample_g,
-                         double Z[], int R[], int *gcgm, 
+                         double Z[], int R[], int is_discrete[], int *gcgm, 
                          double *v1, double *v2, double *lambda, double *g_prior, int *print )
 {
     double var_1    = *v1;
@@ -247,7 +247,7 @@ void gcgm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[
         
         //----- STEP 1: copula --------------------------------------------------------------------|		
         
-        get_S( K, Z, R, S, gcgm, n, &dim );
+        get_S( K, Z, R, is_discrete, S, gcgm, n, &dim );
         
         //----- STEP 2: updating graph G and precision matrix K, row by row -----------------------|		
              

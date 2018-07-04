@@ -1,6 +1,9 @@
 \name{ssgraph-package}
 \alias{ssgraph-package}
 
+\alias{ copula_C }
+\alias{ copula_S }
+
 \docType{package}
 
 \title{ Bayesian Graphical Estimation using Spike-and-Slab Priors }
@@ -15,7 +18,7 @@ To speed up the computations, the computationally intensive tasks of the package
 Whenever using this package, please cite as
 \preformatted{
 Mohammadi R. (2018). ssgraph: Bayesian Graphical Estimation using Spike-and-Slab Priors, 
-R package version 1.3, https://cran.r-project.org/package=ssgraph
+R package version 1.4, https://cran.r-project.org/package=ssgraph
 }
 }
 

@@ -12,8 +12,8 @@
 #  R code for Graphcial models based on spike and slab priors                                      |
 ## ------------------------------------------------------------------------------------------------|
 
-ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter / 2, 
-                    var1 = 4e-04, var2 = 1, lambda = 1, g.prior = 0.5, 
+ssgraph = function( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5000, 
+                    burnin = iter / 2, var1 = 4e-04, var2 = 1, lambda = 1, g.prior = 0.5, 
                     g.start = "full", sig.start = NULL, save.all = FALSE, print = 1000, 
                     cores = 2 )
 {
@@ -32,7 +32,11 @@ ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter /
     
     burnin <- floor( burnin )
     
-    if( class( data ) == "sim" ) data <- data $ data
+    if( class( data ) == "sim" )
+    {
+        is.discrete <- data $ is.discrete
+        data        <- data $ data
+    }
     
     if( !is.matrix( data ) & !is.data.frame( data ) ) stop( "Data must be a matrix or dataframe" )
     if( is.data.frame( data ) ) data <- data.matrix( data )
@@ -54,8 +58,22 @@ ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter /
     {
         if( isSymmetric( data ) ) stop( "method='gcgm' requires all data" )
         
+        if( is.null( is.discrete ) )
+        {
+            is.discrete = numeric( p )
+            for( j in 1:p )
+                if( length( unique( data[ , j ] ) ) < min( 20, n / 2 ) ) is.discrete[ j ] = 1
+        }else{
+            if( !is.vector( is.discrete )  ) stop( "'is.discrete' must be a vector with length of number of variables" )
+            if( length( is.discrete ) != p ) stop( "'is.discrete' must be a vector with length of number of variables" )
+            if( length( is.discrete ) != p ) stop( "'is.discrete' must be a vector with length of number of variables" )
+            if( ( sum( is.discrete == 0 ) + sum( is.discrete == 1 ) ) != p ) stop( "Element of 'is.discrete', as a vector, must have 0 or 1" )
+        }
+        
         R <- 0 * data
-        for( j in 1:p ) R[ , j ] = match( data[ , j ], sort( unique( data[ , j ] ) ) ) 
+        for( j in 1:p )
+            if( is.discrete[ j ] )
+                R[ , j ] = match( data[ , j ], sort( unique( data[ , j ] ) ) ) 
         R[ is.na( R ) ] = 0     # dealing with missing values	
         
         # copula for continuous non-Gaussian data
@@ -101,9 +119,11 @@ ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter /
 
     if( class( g.start ) == "sim" ) 
     {
-        G <- as.matrix( g.start $ G )
-        K <- as.matrix( g.start $ K )
-    } 
+        G <- unclass( g.start $ G )
+        K <- g.start $ K
+    }
+    
+    if( class( g.start ) == "graph" ) G <- unclass( g.start )
     
     if( class( g.start ) == "character" && g.start == "empty"  ) G = matrix( 0, p, p )
     if( class( g.start ) == "character" && g.start == "full"   ) G = matrix( 1, p, p )
@@ -117,9 +137,12 @@ ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter /
         G[ lower.tri( G, diag( TRUE ) ) ] <- 0
         G  = G + t( G )
     }
-    
-    if( is.null( sig.start ) ) sigma = S else sigma = sig.start
-    K = solve( sigma )      # precision or concentration matrix (omega)
+
+    if( ( class( g.start ) != "sim" ) & ( class( g.start ) != "bdgraph" ) & ( class( g.start ) != "ssgraph" ) )
+    {
+        if( is.null( sig.start ) ) sigma = S else sigma = sig.start
+        K = solve( sigma )      # precision or concentration matrix (omega)
+    }
     
     if( save.all == TRUE )
     {
@@ -160,9 +183,11 @@ ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter /
         
         if( method == "gcgm" )
         {
+            is_discrete = is.discrete
+            
              result = .C( "gcgm_spike_slab_ma", as.integer(iter), as.integer(burnin), G = as.integer(G), K = as.double(K), as.double(S), as.integer(p), 
                          K_hat = as.double(K_hat), p_links = as.double(p_links), as.integer(n),
-                         as.double(Z), as.integer(R), as.integer(gcgm_NA),
+                         as.double(Z), as.integer(R), as.integer(is_discrete), as.integer(gcgm_NA),
                          as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
         }
     }else{
@@ -177,11 +202,13 @@ ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter /
         
         if( method == "gcgm" )
         {
+            is_discrete = is.discrete
+            
             result = .C( "gcgm_spike_slab_map", as.integer(iter), as.integer(burnin), G = as.integer(G), K = as.double(K), as.double(S), as.integer(p), 
                          K_hat = as.double(K_hat), p_links = as.double(p_links), as.integer(n),
                          all_graphs = as.integer(all_graphs), all_weights = as.double(all_weights), 
                          sample_graphs = as.character(sample_graphs), graph_weights = as.double(graph_weights), size_sample_g = as.integer(size_sample_g),
-                         as.double(Z), as.integer(R), as.integer(gcgm_NA),
+                         as.double(Z), as.integer(R), as.integer(is_discrete), as.integer(gcgm_NA),
                          as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
         }
     }
@@ -194,8 +221,7 @@ ssgraph = function( data, n = NULL, method = "ggm", iter = 5000, burnin = iter /
     last_graph = matrix( result $ G      , p, p, dimnames = list( label, label ) )
     last_K     = matrix( result $ K      , p, p, dimnames = list( label, label ) )
 
-    diag( p_links ) = nmc
-    p_links[ lower.tri( p_links ) ] = 0
+    p_links[ lower.tri( p_links, diag = TRUE ) ] = 0
     p_links = p_links / nmc
     K_hat = K_hat / nmc
 
@@ -289,10 +315,8 @@ summary.ssgraph = function( object, round = 2, vis = TRUE, ... )
 ## ------------------------------------------------------------------------------------------------|
 #    Plot for class ssgraph
 ## ------------------------------------------------------------------------------------------------|
-plot.ssgraph = function( x, cut = NULL, number.g = 1, layout = layout.circle, ... )
+plot.ssgraph = function( x, cut = 0.5, layout = layout.circle, ... )
 {
-    if( is.null( cut ) ) cut = 0.5
-
     if( ( cut < 0 ) || ( cut > 1 ) ) stop( "Value of 'cut' must be between 0 and 1." )
     
     p_links                      = x $ p_links

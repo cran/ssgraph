@@ -12,6 +12,9 @@ importFrom( "stats", "qnorm", "rnorm", "sd" )
 importFrom( "utils", "object.size" )
 
 export( ssgraph,
+        
+        copula_C,
+        copula_S,
 
 		print.ssgraph, 
 		plot.ssgraph, 
