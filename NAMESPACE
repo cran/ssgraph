@@ -2,14 +2,7 @@ useDynLib( ssgraph, .registration = TRUE )
 
 import( "BDgraph" )
 
-importFrom( "Matrix", "Matrix", "printSpMatrix" )
-
-importFrom( "igraph", "graph.adjacency", "plot.igraph", "layout.circle", "make_undirected_graph", "max_cliques" )
-
-importFrom( "grDevices", "dev.new" )
-importFrom( "graphics", "abline", "par", "plot", "text" )
-importFrom( "stats", "qnorm", "rnorm", "sd" )
-importFrom( "utils", "object.size" )
+importFrom( "igraph", "layout.circle" )
 
 export( ssgraph,
         

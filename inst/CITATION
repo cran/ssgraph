@@ -10,6 +10,6 @@ citEntry( entry = "Manual",
 	author      = personList( as.person( "Reza Mohammadi" ) ),
 	year        = year,
 	note        = vers,
-	textVersion = paste( "Mohammadi R. (", year, "). ssgraph: Bayesian Graphical Estimation using Spike-and-Slab Priors.", vers, ".", sep="" )
+	textVersion = paste( "Mohammadi, R. (", year, "). ssgraph: Bayesian Graphical Estimation using Spike-and-Slab Priors.", vers, ".", sep="" )
 )
 

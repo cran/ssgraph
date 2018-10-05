@@ -21,7 +21,7 @@ extern "C" {
 void gcgm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[], int *p, 
             double K_hat[], double p_links[], int *n,
             double Z[], int R[], int is_discrete[], int *gcgm, 
-            double *v1, double *v2, double *lambda, double *g_prior, int *print )
+            double *v1, double *v2, double *lambda, double g_prior[], int *print )
 {
     double var_1    = *v1;
     double var_2    = *v2;
@@ -30,15 +30,15 @@ void gcgm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[]
     double a_gam         = 0.5 * *n + 1.0; 
     double sqrt_v1       = sqrt( var_1 );
     double sqrt_v2       = sqrt( var_2 );
-    double g_prior_c     = *g_prior;
-    double one_g_prior_c = 1.0 - g_prior_c;
+    //double g_prior_c     = *g_prior;
+    //double one_g_prior_c = 1.0 - g_prior_c;
     
     double alpha = 1.0, beta = 0.0, alpha1 = -1.0;
     double w1, w2, prob_e, inv_V_ij, sigmaii_inv, Sii_lambda, b_gam, gam, K0ii;
     
     int print_c = *print, iteration = *iter, burn_in = *burnin;
     int info, one = 1, dim = *p, pxp = dim * dim;
-    int p1 = dim - 1, p1xp1 = p1 * p1, i, row_i, ii, k, k_p1, G_ij;
+    int p1 = dim - 1, p1xp1 = p1 * p1, i, row_i, ii, k, ik, k_p1, G_ij;
     
     char transT = 'T', transN = 'N', sideU = 'U', diagN = 'N';																	
     
@@ -142,8 +142,9 @@ void gcgm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[]
             
             for( k = 0; k < row_i; k++ )
             {
-                w1 = one_g_prior_c * exp( - 0.5 * K_12[ k ] * K_12[ k ] / var_1 ) / sqrt_v1;
-                w2 = g_prior_c     * exp( - 0.5 * K_12[ k ] * K_12[ k ] / var_2 ) / sqrt_v2;
+                ik = k * dim + row_i;
+                w1 = ( 1.0 - g_prior[ ik ] ) * exp( - 0.5 * K_12[ k ] * K_12[ k ] / var_1 ) / sqrt_v1;
+                w2 = g_prior[ ik ]     * exp( - 0.5 * K_12[ k ] * K_12[ k ] / var_2 ) / sqrt_v2;
                 
                 prob_e = w2 / ( w1 + w2 );
                 G_ij = ( unif_rand() < prob_e ) ? 1 : 0;
@@ -155,8 +156,9 @@ void gcgm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[]
             for( k = row_i + 1; k < dim; k++ )
             {
                 k_p1 = k - 1;
-                w1 = one_g_prior_c * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] / var_1 ) / sqrt_v1;
-                w2 = g_prior_c     * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] / var_2 ) / sqrt_v2;
+                ik = k * dim + row_i;
+                w1 = ( 1.0 - g_prior[ ik ] ) * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] / var_1 ) / sqrt_v1;
+                w2 = g_prior[ ik ]     * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] / var_2 ) / sqrt_v2;
                 
                 prob_e = w2 / ( w1 + w2 );
                 G_ij = ( unif_rand() < prob_e ) ? 1 : 0;
@@ -194,7 +196,7 @@ void gcgm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[
                          int all_graphs[], double all_weights[], 
                          char *sample_graphs[], double graph_weights[], int *size_sample_g,
                          double Z[], int R[], int is_discrete[], int *gcgm, 
-                         double *v1, double *v2, double *lambda, double *g_prior, int *print )
+                         double *v1, double *v2, double *lambda, double g_prior[], int *print )
 {
     double var_1    = *v1;
     double var_2    = *v2;
@@ -203,15 +205,15 @@ void gcgm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[
     double a_gam         = 0.5 * *n + 1.0; 
     double sqrt_v1       = sqrt( var_1 );
     double sqrt_v2       = sqrt( var_2 );
-    double g_prior_c     = *g_prior;
-    double one_g_prior_c = 1.0 - g_prior_c;
+    //double g_prior_c     = *g_prior;
+    //double one_g_prior_c = 1.0 - g_prior_c;
     
     double alpha = 1.0, beta = 0.0, alpha1 = -1.0;
     double w1, w2, prob_e, inv_V_ij, sigmaii_inv, Sii_lambda, b_gam, gam, K0ii;
     
     int print_c = *print, iteration = *iter, burn_in = *burnin;
     int info, one = 1, dim = *p, pxp = dim * dim;
-    int p1 = dim - 1, p1xp1 = p1 * p1, i, j, row_i, ii, k, k_p1, G_ij;
+    int p1 = dim - 1, p1xp1 = p1 * p1, i, j, row_i, ii, k, ik, k_p1, G_ij;
     
     char transT = 'T', transN = 'N', sideU = 'U', diagN = 'N';																	
     
@@ -322,8 +324,9 @@ void gcgm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[
             
             for( k = 0; k < row_i; k++ )
             {
-                w1 = one_g_prior_c * exp( - 0.5 * K_12[ k ] * K_12[ k ] / var_1 ) / sqrt_v1;
-                w2 = g_prior_c     * exp( - 0.5 * K_12[ k ] * K_12[ k ] / var_2 ) / sqrt_v2;
+                ik = k * dim + row_i;
+                w1 = ( 1.0 - g_prior[ ik ] ) * exp( - 0.5 * K_12[ k ] * K_12[ k ] / var_1 ) / sqrt_v1;
+                w2 = g_prior[ ik ]     * exp( - 0.5 * K_12[ k ] * K_12[ k ] / var_2 ) / sqrt_v2;
                 
                 prob_e = w2 / ( w1 + w2 );
                 G_ij = ( unif_rand() < prob_e ) ? 1 : 0;
@@ -335,8 +338,9 @@ void gcgm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[
             for( k = row_i + 1; k < dim; k++ )
             {
                 k_p1 = k - 1;
-                w1 = one_g_prior_c * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] / var_1 ) / sqrt_v1;
-                w2 = g_prior_c     * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] / var_2 ) / sqrt_v2;
+                ik = k * dim + row_i;
+                w1 = ( 1.0 - g_prior[ ik ] ) * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] / var_1 ) / sqrt_v1;
+                w2 = g_prior[ ik ]     * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] / var_2 ) / sqrt_v2;
                 
                 prob_e = w2 / ( w1 + w2 );
                 G_ij = ( unif_rand() < prob_e ) ? 1 : 0;

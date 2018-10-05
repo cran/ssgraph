@@ -15,20 +15,24 @@
 ssgraph = function( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5000, 
                     burnin = iter / 2, var1 = 4e-04, var2 = 1, lambda = 1, g.prior = 0.5, 
                     g.start = "full", sig.start = NULL, save.all = FALSE, print = 1000, 
-                    cores = 2 )
+                    cores = NULL )
 {
-    if( iter < burnin ) stop( "Number of iteration must be more than number of burn-in" )
-    if( ( g.prior <= 0 ) | ( g.prior >= 1 ) ) stop( "'g.prior' must be between 0 and 1" )   
-    if(  var1 <= 0 ) stop( "'var1' must be more than 0" )
-    if(  var2 <= 0 ) stop( "'var2' must be more than 0" )
-
-    check.os( os = 2 )	
-    if( cores == "all" ) cores = BDgraph::detect_cores()
+    if( iter < burnin ) stop( " Number of iteration must be more than number of burn-in" )
+    if(  var1 <= 0    ) stop( " 'var1' must be more than 0" )
+    if(  var2 <= 0    ) stop( " 'var2' must be more than 0" )
     
-    tmp   <- .C( "check_nthread", cores = as.integer(cores), PACKAGE = "ssgraph" )
-    cores <- tmp $ cores
     
-    .C( "omp_set_num_cores", as.integer( cores ), PACKAGE = "ssgraph" )
+    BDgraph::check.os( os = 2 )	
+    
+    machine_cores = BDgraph::detect_cores()
+    
+    if( is.null( cores ) )  cores = min( 7, machine_cores )
+    if( cores == "all" )    cores = machine_cores
+	
+	tmp   <- .C( "check_nthread", cores = as.integer( cores ), PACKAGE = "ssgraph" )
+	cores <- tmp $ cores
+	
+	.C( "omp_set_num_cores", as.integer( cores ), PACKAGE = "ssgraph" )
     
     burnin <- floor( burnin )
     
@@ -38,25 +42,41 @@ ssgraph = function( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5
         data        <- data $ data
     }
     
-    if( !is.matrix( data ) & !is.data.frame( data ) ) stop( "Data must be a matrix or dataframe" )
+    if( !is.matrix( data ) & !is.data.frame( data ) ) stop( " Data must be a matrix or dataframe" )
     if( is.data.frame( data ) ) data <- data.matrix( data )
     
     if( any( is.na( data ) ) ) 
     {
-        if( method == "ggm" ) { stop( "ggm method does not deal with missing values. You could choose option method = gcgm" ) }	
+        if( method == "ggm" ) { stop( " 'ggm' method does not deal with missing values. You could choose option method = gcgm" ) }	
         gcgm_NA = 1
     }else{
         gcgm_NA = 0
     }
     
-    dimd <- dim( data )
-    p    <- dimd[ 2 ]
-    if( p < 3 ) stop( "Number of variables/nodes ('p') must be more than or equal with 2" )
-    if( is.null( n ) ) n <- dimd[ 1 ]
+    p    <- ncol( data )
+    if( p < 3 ) stop( " Number of variables/nodes ('p') must be more than or equal with 2" )
+    if( is.null( n ) ) n <- nrow( data )
 
+    if( is.data.frame( g.prior ) ) g.prior <- data.matrix( g.prior )
+    if( class( g.prior ) == "dtCMatrix" ) g.prior = as.matrix( g.prior )
+    if( ( class( g.prior ) == "bdgraph" ) | ( class( g.prior ) == "ssgraph" ) ) g.prior <- as.matrix( BDgraph::plinks( g.prior ) )
+
+    if( !is.matrix( g.prior ) )
+    {
+        if( ( g.prior <= 0 ) | ( g.prior >= 1 ) ) stop( " 'g.prior' must be between 0 and 1" )
+        g.prior = matrix( g.prior, p, p )
+    }else{
+        if( ( nrow( g.prior ) != p ) | ( ncol( g.prior ) != p ) ) stop( " 'g.prior' and 'data' have non-conforming size" )
+        if( any( g.prior < 0 ) || any( g.prior > 1 ) ) stop( " Element of 'g.prior', as a matrix, must be between 0 and 1" )
+    }
+    
+    g_prior = g.prior
+    g_prior[ lower.tri( g_prior, diag = TRUE ) ] <- 0
+    g_prior = g_prior + t( g_prior )
+    
     if( method == "gcgm" )
     {
-        if( isSymmetric( data ) ) stop( "method='gcgm' requires all data" )
+        if( isSymmetric( data ) ) stop( " method='gcgm' requires all data" )
         
         if( is.null( is.discrete ) )
         {
@@ -64,10 +84,10 @@ ssgraph = function( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5
             for( j in 1:p )
                 if( length( unique( data[ , j ] ) ) < min( 20, n / 2 ) ) is.discrete[ j ] = 1
         }else{
-            if( !is.vector( is.discrete )  ) stop( "'is.discrete' must be a vector with length of number of variables" )
-            if( length( is.discrete ) != p ) stop( "'is.discrete' must be a vector with length of number of variables" )
-            if( length( is.discrete ) != p ) stop( "'is.discrete' must be a vector with length of number of variables" )
-            if( ( sum( is.discrete == 0 ) + sum( is.discrete == 1 ) ) != p ) stop( "Element of 'is.discrete', as a vector, must have 0 or 1" )
+            if( !is.vector( is.discrete )  ) stop( " 'is.discrete' must be a vector with length of number of variables" )
+            if( length( is.discrete ) != p ) stop( " 'is.discrete' must be a vector with length of number of variables" )
+            if( length( is.discrete ) != p ) stop( " 'is.discrete' must be a vector with length of number of variables" )
+            if( ( sum( is.discrete == 0 ) + sum( is.discrete == 1 ) ) != p ) stop( " Element of 'is.discrete', as a vector, must be 0 or 1" )
         }
         
         R <- 0 * data
@@ -80,15 +100,16 @@ ssgraph = function( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5
         if( gcgm_NA == 0 && min( apply( R, 2, max ) ) > ( n - 5 * n / 100 ) )
         {
             # copula transfer 
-            data = qnorm( apply( data, 2, rank ) / ( n + 1 ) )
+            data = stats::qnorm( apply( data, 2, rank ) / ( n + 1 ) )
+            data = t( ( t( data ) - apply( data, 2, mean ) ) / apply( data, 2, stats::sd ) )
             
             method = "ggm"
         }else{	
             # for non-Gaussian data
-            Z                  <- qnorm( apply( data, 2, rank, ties.method = "random" ) / ( n + 1 ) )
-            Zfill              <- matrix( rnorm( n * p ), n, p )       # for missing values
-            Z[ is.na( data ) ] <- Zfill[ is.na( data ) ]               # for missing values
-            Z                  <- t( ( t( Z ) - apply( Z, 2, mean ) ) / apply( Z, 2, sd ) )
+            Z                  <- stats::qnorm( apply( data, 2, rank, ties.method = "random" ) / ( n + 1 ) )
+            Zfill              <- matrix( stats::rnorm( n * p ), n, p )     # for missing values
+            Z[ is.na( data ) ] <- Zfill[ is.na( data ) ]                    # for missing values
+            Z                  <- t( ( t( Z ) - apply( Z, 2, mean ) ) / apply( Z, 2, stats::sd ) )
             S                  <- t( Z ) %*% Z
         }
     } 
@@ -97,21 +118,15 @@ ssgraph = function( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5
     {
         if( isSymmetric( data ) )
         {
-            if ( is.null( n ) ) stop( "Please specify the number of observations 'n'" )
-            cat( "Input is identified as the covriance matrix. \n" )
+            if ( is.null( n ) ) stop( " Please specify the number of observations 'n'" )
+            cat( " Input is identified as the covriance matrix. \n" )
             S <- data
         }else{
             S <- t( data ) %*% data
         }
     }
     
-    if( class( g.start ) == "bdgraph" ) 
-    {
-        G <- g.start $ last_graph
-        K <- g.start $ last_K
-    } 
-
-    if( class( g.start ) == "ssgraph" ) 
+    if( ( class( g.start ) == "bdgraph" ) | ( class( g.start ) == "ssgraph" ) ) 
     {
         G <- g.start $ last_graph
         K <- g.start $ last_K
@@ -125,12 +140,16 @@ ssgraph = function( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5
     
     if( class( g.start ) == "graph" ) G <- unclass( g.start )
     
-    if( class( g.start ) == "character" && g.start == "empty"  ) G = matrix( 0, p, p )
-    if( class( g.start ) == "character" && g.start == "full"   ) G = matrix( 1, p, p )
-    if( is.matrix( g.start ) ) G = g.start
+    if( ( class( g.start ) == "character" ) && ( g.start == "empty" ) ) G = matrix( 0, p, p )
+    if( ( class( g.start ) == "character" ) && ( g.start == "full"  ) ) G = matrix( 1, p, p )
+    if( is.matrix( g.start ) ) 
+    {
+        if( ( sum( g.start == 0 ) + sum( g.start == 1 ) ) != ( p ^ 2 ) ) stop( " Element of 'g.start', as a matrix, must be 0 or 1" )
+        G = g.start
+    }
     
-    if( ( sum( G == 0 ) + sum( G == 1 ) ) != ( p ^ 2 ) ) stop( "Element of 'g.start', as a matrix, must have 0 or 1" )
-    
+    if( ( nrow( G ) != p ) | ( ncol( G ) != p ) ) stop( " 'g.start' and 'data' have non-conforming size" )
+
     diag( G ) = 0    
     if( !isSymmetric( G ) )
     {
@@ -158,15 +177,12 @@ ssgraph = function( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5
     if( ( save.all == TRUE ) && ( p > 50 & iter > 20000 ) )
     {
         cat( "  WARNING: Memory needs to run this function is around " )
-        print( ( iter - burnin ) * object.size( string_g ), units = "auto" ) 
+        print( ( iter - burnin ) * utils::object.size( string_g ), units = "auto" ) 
     } 
     
     nmc     = iter - burnin
     p_links = matrix( 0, p, p )
     K_hat   = matrix( 0, p, p )
-    
-    g_prior     = g.prior
-    one_g_prior = 1 - g_prior
 
     mes <- paste( c( iter, " iteration is started.                    " ), collapse = "" )
     cat( mes, "\r" )
@@ -264,7 +280,7 @@ summary.ssgraph = function( object, round = 2, vis = TRUE, ... )
         G  <- igraph::graph.adjacency( selected_g, mode = "undirected", diag = FALSE )
         
         if( !is.null( object $ graph_weights ) ) 
-            op = par( mfrow = c( 2, 2 ), pty = "s", omi = c( 0.3, 0.3, 0.3, 0.3 ), mai = c( 0.3, 0.3, 0.3, 0.3 ) ) 
+            op = graphics::par( mfrow = c( 2, 2 ), pty = "s", omi = c( 0.3, 0.3, 0.3, 0.3 ), mai = c( 0.3, 0.3, 0.3, 0.3 ) ) 
 
         subGraph = "Selected graph with edge posterior probability = 0.5"
         
@@ -280,11 +296,11 @@ summary.ssgraph = function( object, round = 2, vis = TRUE, ... )
             max_prob_G    = max_gWeights / sum_gWeights
             
             # plot posterior distribution of graph
-            plot( x = 1 : length( graph_weights ), y = graph_weights / sum_gWeights, type = "h", main = "Posterior probability of graphs",
+            graphics::plot( x = 1 : length( graph_weights ), y = graph_weights / sum_gWeights, type = "h", main = "Posterior probability of graphs",
                   ylab = "Pr(graph|data)", xlab = "graph" )
             
-            abline( h = max_prob_G, col = "red" )
-            text( which( max_gWeights == graph_weights )[1], max_prob_G, "Pr(selected graph|data)", col = "gray60", adj = c( 0, +1 ) )
+            graphics::abline( h = max_prob_G, col = "red" )
+            graphics::text( which( max_gWeights == graph_weights )[1], max_prob_G, "Pr(selected graph|data)", col = "gray60", adj = c( 0, +1 ) )
             
             # plot posterior distribution of graph size
             sizesample_graphs = sapply( sample_graphs, function( x ) length( which( unlist( strsplit( as.character(x), "" ) ) == 1 ) ) )
@@ -293,17 +309,17 @@ summary.ssgraph = function( object, round = 2, vis = TRUE, ... )
             
             for( i in 1 : length(xx) ) weightsg[i] <- sum( graph_weights[ which( sizesample_graphs == xx[i] ) ] )
             
-            plot( x = xx, y = weightsg / sum_gWeights, type = "h", main = "Posterior probability of graphs size", ylab = "Pr(graph size|data)", xlab = "Graph size" )
+            graphics::plot( x = xx, y = weightsg / sum_gWeights, type = "h", main = "Posterior probability of graphs size", ylab = "Pr(graph size|data)", xlab = "Graph size" )
             
             # plot trace of graph size
             all_graphs     = object $ all_graphs
             sizeall_graphs = sizesample_graphs[ all_graphs ]
             
-            plot( x = 1 : length( all_graphs ), sizeall_graphs, type = "l", main = "Trace of graph size", ylab = "Graph size", xlab = "Iteration" )
+            graphics::plot( x = 1 : length( all_graphs ), sizeall_graphs, type = "l", main = "Trace of graph size", ylab = "Graph size", xlab = "Iteration" )
             
-            abline( h = sum( selected_g ), col = "red" )	  
+            graphics::abline( h = sum( selected_g ), col = "red" )	  
             
-            par( op )
+            graphics::par( op )
         }
     }
     
@@ -317,7 +333,7 @@ summary.ssgraph = function( object, round = 2, vis = TRUE, ... )
 ## ------------------------------------------------------------------------------------------------|
 plot.ssgraph = function( x, cut = 0.5, layout = layout.circle, ... )
 {
-    if( ( cut < 0 ) || ( cut > 1 ) ) stop( "Value of 'cut' must be between 0 and 1." )
+    if( ( cut < 0 ) || ( cut > 1 ) ) stop( " Value of 'cut' must be between 0 and 1." )
     
     p_links                      = x $ p_links
     selected_g                   = 0 * p_links
@@ -343,7 +359,7 @@ print.ssgraph = function( x, round = 2, ... )
     cat( paste( "Adjacency matrix of selected graph" ), fill = TRUE )
     cat( paste( "" ), fill = TRUE )
     
-    Matrix::printSpMatrix( Matrix( selected_g, sparse = TRUE ), col.names = TRUE, note.dropping.colnames = FALSE )
+    Matrix::printSpMatrix( Matrix::Matrix( selected_g, sparse = TRUE ), col.names = TRUE, note.dropping.colnames = FALSE )
     cat( paste( "" ), fill = TRUE )
     cat( paste( "Size of selected graph = ", sum( selected_g ) ), fill = TRUE )
 

@@ -19,20 +19,20 @@ Provides a summary of the results for function \code{\link{ssgraph}}.
 }
 
 \value{
-	\item{best.graph}{The adjacency matrix corresponding to the selected graph which has the highest posterior probability.}
+	\item{selected_g}{The adjacency matrix corresponding to the selected graph which has the highest posterior probability.}
 	\item{p_links}{An upper triangular matrix corresponding to the posterior probabilities of all possible links.}
 	\item{K_hat}{The estimated precision matrix.}
 }
 
 \references{
-Mohammadi, A. and E. Wit (2015). Bayesian Structure Learning in Sparse Gaussian Graphical Models, \emph{Bayesian Analysis}, 10(1):109-138
+Mohammadi, A. and Wit, E. C. (2015). Bayesian Structure Learning in Sparse Gaussian Graphical Models, \emph{Bayesian Analysis}, 10(1):109-138
 
-Mohammadi, A. and E. Wit (2015). \pkg{BDgraph}: An \code{R} Package for Bayesian Structure Learning in Graphical Models, \emph{arXiv preprint arXiv:1501.05108} 
+Mohammadi, A. and Wit, E. C. (2017). \pkg{BDgraph}: An \code{R} Package for Bayesian Structure Learning in Graphical Models, \emph{arXiv preprint arXiv:1501.05108v5} 
 }
 
-\author{ Reza Mohammadi }
+\author{ Reza Mohammadi \email{a.mohammadi@uva.nl} }
 
-\seealso{\code{\link{ssgraph}}}
+\seealso{ \code{\link{ssgraph}} }
 
 \examples{
 \dontrun{

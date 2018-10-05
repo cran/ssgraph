@@ -18,22 +18,22 @@ To speed up the computations, the computationally intensive tasks of the package
 Whenever using this package, please cite as
 \preformatted{
 Mohammadi R. (2018). ssgraph: Bayesian Graphical Estimation using Spike-and-Slab Priors, 
-R package version 1.4, https://cran.r-project.org/package=ssgraph
+R package version 1.5, https://cran.r-project.org/package=ssgraph
 }
 }
 
-\author{Reza Mohammadi <a.mohammadi@uva.nl>}
+\author{Reza Mohammadi \email{a.mohammadi@uva.nl} }
 
 \references{
 Wang, H. (2015). Scaling it up: Stochastic search structure learning in graphical models, \emph{Bayesian Analysis}, 10(2):351-377
 
-George, E.I. and McCulloch, R.E. (1993). Variable selection via Gibbs sampling. \emph{Journal of the American Statistical Association}, 88(423):881-889
+George, E. I. and McCulloch, R. E. (1993). Variable selection via Gibbs sampling. \emph{Journal of the American Statistical Association}, 88(423):881-889
 
-Griffin, J.E. and Brown, P.J. (2010) Inference with normal-gamma prior distributions in regression problems. \emph{Bayesian Analysis}, 5(1):171-188
+Griffin, J. E. and Brown, P. J. (2010) Inference with normal-gamma prior distributions in regression problems. \emph{Bayesian Analysis}, 5(1):171-188
 
-Mohammadi, A. and E. Wit (2015). Bayesian Structure Learning in Sparse Gaussian Graphical Models, \emph{Bayesian Analysis}, 10(1):109-138
+Mohammadi, A. and Wit, E. C. (2015). Bayesian Structure Learning in Sparse Gaussian Graphical Models, \emph{Bayesian Analysis}, 10(1):109-138
 
-Mohammadi, A. and E. Wit (2015). \pkg{BDgraph}: An \code{R} Package for Bayesian Structure Learning in Graphical Models, \emph{arXiv preprint arXiv:1501.05108} 
+Mohammadi, A. and Wit, E. C. (2017). \pkg{BDgraph}: An \code{R} Package for Bayesian Structure Learning in Graphical Models, \emph{arXiv preprint arXiv:1501.05108v5} 
 }
 
 \examples{
@@ -50,7 +50,7 @@ ssgraph.obj <- ssgraph( data = data.sim, iter = 5000 )
 summary( ssgraph.obj )
 
 # To compare the result with true graph
-compare( data.sim, ssgraph.obj, colnames = c("True graph", "ssgraph"), vis = TRUE )
+compare( data.sim, ssgraph.obj, main = c("True graph", "ssgraph"), vis = TRUE )
 }
 }
 

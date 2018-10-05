@@ -13,18 +13,18 @@ or graph with the highest posterior probability. }
   
   \item{cut}{ Threshold for including the links in the selected graph based on the estimated posterior probabilities of the links; See the examples. } 
 
-  \item{layout}{The vertex placement algorithm which is according to \pkg{igraph} package. }
+  \item{layout}{The vertex placement algorithm which is according to \code{\link[igraph]{igraph}} package. }
   
   \item{\dots}{System reserved (no specific usage).}
 }
 
 \references{
-Mohammadi, A. and E. Wit (2015). Bayesian Structure Learning in Sparse Gaussian Graphical Models, \emph{Bayesian Analysis}, 10(1):109-138
+Mohammadi, A. and Wit, E. C. (2015). Bayesian Structure Learning in Sparse Gaussian Graphical Models, \emph{Bayesian Analysis}, 10(1):109-138
 
-Mohammadi, A. and E. Wit (2015). \pkg{BDgraph}: An \code{R} Package for Bayesian Structure Learning in Graphical Models, \emph{arXiv preprint arXiv:1501.05108} 
+Mohammadi, A. and Wit, E. C. (2017). \pkg{BDgraph}: An \code{R} Package for Bayesian Structure Learning in Graphical Models, \emph{arXiv preprint arXiv:1501.05108v5} 
 }
 
-\author{ Reza Mohammadi }
+\author{ Reza Mohammadi \email{a.mohammadi@uva.nl} }
 
 \seealso{\code{\link{ssgraph}}}
 
