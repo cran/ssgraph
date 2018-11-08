@@ -1,5 +1,6 @@
-## ------------------------------------------------------------------------------------------------|
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 # copula funiction based on C++: IT DOES NOT WORKING WITH MESSING DATA
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 copula_C = function( K, Z, R, is.discrete, S, n, p )
 {
     #S = 0 * S
@@ -19,8 +20,9 @@ copula_C = function( K, Z, R, is.discrete, S, n, p )
     return( Z_new )
 }
 
-## ------------------------------------------------------------------------------------------------|
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 # copula funiction based on C++: IT DOES NOT WORKING WITH MESSING DATA
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 copula_S = function( K, Z, R, is.discrete, S, n, p )
 {
 

@@ -1,4 +1,4 @@
-## ------------------------------------------------------------------------------------------------|
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 #     Copyright (C) 2018  Reza Mohammadi                                                           |
 #                                                                                                  |
 #     This file is part of ssgraph package.                                                        |
@@ -8,11 +8,11 @@
 #     Software Foundation; see <https://cran.r-project.org/web/licenses/GPL-3>.                    |
 #                                                                                                  |
 #     Maintainer: Reza Mohammadi <a.mohammadi@uva.nl>                                              |
-## ------------------------------------------------------------------------------------------------|
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 #  R code for Graphcial models based on spike and slab priors                                      |
-## ------------------------------------------------------------------------------------------------|
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 
-ssgraph = function( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5000, 
+ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000, 
                     burnin = iter / 2, var1 = 4e-04, var2 = 1, lambda = 1, g.prior = 0.5, 
                     g.start = "full", sig.start = NULL, save.all = FALSE, print = 1000, 
                     cores = NULL )
@@ -21,25 +21,18 @@ ssgraph = function( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5
     if(  var1 <= 0    ) stop( " 'var1' must be more than 0" )
     if(  var2 <= 0    ) stop( " 'var2' must be more than 0" )
     
-    
-    BDgraph::check.os( os = 2 )	
-    
-    machine_cores = BDgraph::detect_cores()
-    
-    if( is.null( cores ) )  cores = min( 7, machine_cores )
-    if( cores == "all" )    cores = machine_cores
-	
-	tmp   <- .C( "check_nthread", cores = as.integer( cores ), PACKAGE = "ssgraph" )
-	cores <- tmp $ cores
-	
-	.C( "omp_set_num_cores", as.integer( cores ), PACKAGE = "ssgraph" )
+    num_machine_cores = BDgraph::detect_cores()
+    if( is.null( cores ) ) cores = num_machine_cores - 1
+    if( cores == "all" )   cores = num_machine_cores
+
+    .C( "omp_set_num_cores", as.integer( cores ), PACKAGE = "ssgraph" )
     
     burnin <- floor( burnin )
     
     if( class( data ) == "sim" )
     {
-        is.discrete <- data $ is.discrete
-        data        <- data $ data
+        not.cont <- data $ not.cont
+        data     <- data $ data
     }
     
     if( !is.matrix( data ) & !is.data.frame( data ) ) stop( " Data must be a matrix or dataframe" )
@@ -78,21 +71,21 @@ ssgraph = function( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5
     {
         if( isSymmetric( data ) ) stop( " method='gcgm' requires all data" )
         
-        if( is.null( is.discrete ) )
+        if( is.null( not.cont ) )
         {
-            is.discrete = numeric( p )
+            not.cont = numeric( p )
             for( j in 1:p )
-                if( length( unique( data[ , j ] ) ) < min( 20, n / 2 ) ) is.discrete[ j ] = 1
+                if( length( unique( data[ , j ] ) ) < min( 20, n / 2 ) ) not.cont[ j ] = 1
         }else{
-            if( !is.vector( is.discrete )  ) stop( " 'is.discrete' must be a vector with length of number of variables" )
-            if( length( is.discrete ) != p ) stop( " 'is.discrete' must be a vector with length of number of variables" )
-            if( length( is.discrete ) != p ) stop( " 'is.discrete' must be a vector with length of number of variables" )
-            if( ( sum( is.discrete == 0 ) + sum( is.discrete == 1 ) ) != p ) stop( " Element of 'is.discrete', as a vector, must be 0 or 1" )
+            if( !is.vector( not.cont )  ) stop( " 'not.cont' must be a vector with length of number of variables" )
+            if( length( not.cont ) != p ) stop( " 'not.cont' must be a vector with length of number of variables" )
+            if( length( not.cont ) != p ) stop( " 'not.cont' must be a vector with length of number of variables" )
+            if( ( sum( not.cont == 0 ) + sum( not.cont == 1 ) ) != p ) stop( " Element of 'not.cont', as a vector, must be 0 or 1" )
         }
         
         R <- 0 * data
         for( j in 1:p )
-            if( is.discrete[ j ] )
+            if( not.cont[ j ] )
                 R[ , j ] = match( data[ , j ], sort( unique( data[ , j ] ) ) ) 
         R[ is.na( R ) ] = 0     # dealing with missing values	
         
@@ -107,8 +100,8 @@ ssgraph = function( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5
         }else{	
             # for non-Gaussian data
             Z                  <- stats::qnorm( apply( data, 2, rank, ties.method = "random" ) / ( n + 1 ) )
-            Zfill              <- matrix( stats::rnorm( n * p ), n, p )     # for missing values
-            Z[ is.na( data ) ] <- Zfill[ is.na( data ) ]                    # for missing values
+            Zfill              <- matrix( stats::rnorm( n * p ), n, p )   # for missing values
+            Z[ is.na( data ) ] <- Zfill[ is.na( data ) ]                  # for missing values
             Z                  <- t( ( t( Z ) - apply( Z, 2, mean ) ) / apply( Z, 2, stats::sd ) )
             S                  <- t( Z ) %*% Z
         }
@@ -199,11 +192,11 @@ ssgraph = function( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5
         
         if( method == "gcgm" )
         {
-            is_discrete = is.discrete
+            not_continuous = not.cont
             
              result = .C( "gcgm_spike_slab_ma", as.integer(iter), as.integer(burnin), G = as.integer(G), K = as.double(K), as.double(S), as.integer(p), 
                          K_hat = as.double(K_hat), p_links = as.double(p_links), as.integer(n),
-                         as.double(Z), as.integer(R), as.integer(is_discrete), as.integer(gcgm_NA),
+                         as.double(Z), as.integer(R), as.integer(not_continuous), as.integer(gcgm_NA),
                          as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
         }
     }else{
@@ -218,13 +211,13 @@ ssgraph = function( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5
         
         if( method == "gcgm" )
         {
-            is_discrete = is.discrete
+            not_continuous = not.cont
             
             result = .C( "gcgm_spike_slab_map", as.integer(iter), as.integer(burnin), G = as.integer(G), K = as.double(K), as.double(S), as.integer(p), 
                          K_hat = as.double(K_hat), p_links = as.double(p_links), as.integer(n),
                          all_graphs = as.integer(all_graphs), all_weights = as.double(all_weights), 
                          sample_graphs = as.character(sample_graphs), graph_weights = as.double(graph_weights), size_sample_g = as.integer(size_sample_g),
-                         as.double(Z), as.integer(R), as.integer(is_discrete), as.integer(gcgm_NA),
+                         as.double(Z), as.integer(R), as.integer(not_continuous), as.integer(gcgm_NA),
                          as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
         }
     }
@@ -260,9 +253,9 @@ ssgraph = function( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5
     return( output )
 }
 
-## ------------------------------------------------------------------------------------------------|
-#    Summary of ssgraph output
-## ------------------------------------------------------------------------------------------------|
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+#    Summary of ssgraph output                                                                     |
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 summary.ssgraph = function( object, round = 2, vis = TRUE, ... )
 {
     p_links    = object $ p_links
@@ -328,9 +321,9 @@ summary.ssgraph = function( object, round = 2, vis = TRUE, ... )
     return( list( selected_g = selected_g, p_links = round( p_links, round ), K_hat = round( K_hat, round ) ) )
 }  
 
-## ------------------------------------------------------------------------------------------------|
-#    Plot for class ssgraph
-## ------------------------------------------------------------------------------------------------|
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+#    Plot for class ssgraph                                                                        |
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 plot.ssgraph = function( x, cut = 0.5, layout = layout.circle, ... )
 {
     if( ( cut < 0 ) || ( cut > 1 ) ) stop( " Value of 'cut' must be between 0 and 1." )
@@ -344,9 +337,9 @@ plot.ssgraph = function( x, cut = 0.5, layout = layout.circle, ... )
     igraph::plot.igraph( G, layout = layout, main = "Selected graph", sub = paste0( "Edge posterior probability = ", cut ), ... )	   		
 }
 
-## ------------------------------------------------------------------------------------------------|
-#    Print of the ssgraph output
-## ------------------------------------------------------------------------------------------------|
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+#    Print of the ssgraph output                                                                   |
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 print.ssgraph = function( x, round = 2, ... )
 {
     p_links = x $ p_links

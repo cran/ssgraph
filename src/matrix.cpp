@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 //     Copyright (C) 2018 Reza Mohammadi                                                           |
 //                                                                                                 |
 //     This file is part of ssgraph package.                                                       |
@@ -8,15 +8,15 @@
 //     Software Foundation; see <https://cran.r-project.org/web/licenses/GPL-3>.                   |
 //                                                                                                 |
 //     Maintainer: Reza Mohammadi <a.mohammadi@uva.nl>                                             |
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 
 #include "matrix.h"
 
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 // Takes square matrix A (p x p) and 
 // retrieves vector sub_A which is 'sub' th row of matrix A, minus 'sub' element
 // Likes A[j, -j] in R
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 void sub_row_mins( double A[], double sub_A[], int *sub, int *p )
 {
     int subj = *sub, pdim = *p, subxp = subj * pdim;
@@ -25,11 +25,11 @@ void sub_row_mins( double A[], double sub_A[], int *sub, int *p )
     memcpy( sub_A + subj, A + subxp + subj + 1, sizeof( double ) * ( pdim - subj - 1 ) );	
 }
 
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 // Takes symmatric matrix A (p x p) and 
 // retrieves A12(1x(p-1)) and A22((p-1)x(p-1))
 // Like A12=A[j, -j], and A22=A[-j, -j] in R
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 void sub_matrices1( double A[], double A12[], double A22[], int *sub, int *p )
 {
     int pdim = *p, p1 = pdim - 1, psub = *sub, subxp = psub * pdim, mpsub = pdim - psub - 1;
@@ -70,10 +70,10 @@ void sub_matrices1( double A[], double A12[], double A22[], int *sub, int *p )
     }
 }
 
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 // inverse function for symmetric positive-definite matrices (p x p)
 // WARNING: Matrix you pass is overwritten with the result
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 void inverse( double A[], double A_inv[], int *p )
 {
     int info, dim = *p;
@@ -89,10 +89,10 @@ void inverse( double A[], double A_inv[], int *p )
     F77_NAME(dposv)( &uplo, &dim, &dim, A, &dim, A_inv, &dim, &info );
 }
 
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 // Cholesky decomposition of symmetric positive-definite matrix
 // A = U' %*% U
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 void cholesky( double A[], double U[], int *p )
 {
     char uplo = 'U';
@@ -108,9 +108,9 @@ void cholesky( double A[], double U[], int *p )
             U[ j * dim + i ] = 0.0;
 }
 
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 // update sigma for gm_spike_slab functions
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 void update_sigma( double sigma[], int *sub, double K_11_inv[], double K_11_inv_X_K_12[], double *gam, int *p )
 {
     int i = *sub, dim = *p, p1 = dim - 1; //, one, p1xp1 = p1 * p1;
@@ -189,10 +189,10 @@ void update_sigma( double sigma[], int *sub, double K_11_inv[], double K_11_inv_
     sigma[ i * dim + i ]  = alpha_gam;   // sigma[ i, i ]  = 1 / gam;
 }    
 
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 // Simulate one sample from multivarate normal distribution R ~ N_p( mu, sig )
 // where chol_sig = chol( sig )
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 void rmvnorm_chol( double sample[], double mean[], double chol_sig[], int *p )
 {
   // GetRNGstate();
@@ -214,9 +214,9 @@ void rmvnorm_chol( double sample[], double mean[], double chol_sig[], int *p )
   // PutRNGstate();
 }
 
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 // Simulate one sample from multivarate normal distribution R ~ N_p( mu, sig )
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 /*
 void rmvnorm_c( double sample[], double mu[], double sig[], int *p )
 {
@@ -237,6 +237,6 @@ void rmvnorm_c( double sample[], double mu[], double sig[], int *p )
 }
 */   
 
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 
   

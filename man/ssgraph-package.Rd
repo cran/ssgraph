@@ -17,8 +17,9 @@ To speed up the computations, the computationally intensive tasks of the package
 \section{How to cite this package}{
 Whenever using this package, please cite as
 \preformatted{
-Mohammadi R. (2018). ssgraph: Bayesian Graphical Estimation using Spike-and-Slab Priors, 
-R package version 1.5, https://cran.r-project.org/package=ssgraph
+Mohammadi R. (2018). ssgraph: Bayesian Graphical Estimation using 
+Spike-and-Slab Priors, R package version 1.5, 
+https://cran.r-project.org/package=ssgraph
 }
 }
 
@@ -30,6 +31,8 @@ Wang, H. (2015). Scaling it up: Stochastic search structure learning in graphica
 George, E. I. and McCulloch, R. E. (1993). Variable selection via Gibbs sampling. \emph{Journal of the American Statistical Association}, 88(423):881-889
 
 Griffin, J. E. and Brown, P. J. (2010) Inference with normal-gamma prior distributions in regression problems. \emph{Bayesian Analysis}, 5(1):171-188
+
+Mohammadi, A. et al (2017). Bayesian modelling of Dupuytren disease by using Gaussian copula graphical models, \emph{Journal of the Royal Statistical Society: Series C}, 66(3):629-645
 
 Mohammadi, A. and Wit, E. C. (2015). Bayesian Structure Learning in Sparse Gaussian Graphical Models, \emph{Bayesian Analysis}, 10(1):109-138
 
@@ -50,7 +53,7 @@ ssgraph.obj <- ssgraph( data = data.sim, iter = 5000 )
 summary( ssgraph.obj )
 
 # To compare the result with true graph
-compare( data.sim, ssgraph.obj, main = c("True graph", "ssgraph"), vis = TRUE )
+compare( data.sim, ssgraph.obj, main=c("True graph", "ssgraph"), vis=TRUE )
 }
 }
 

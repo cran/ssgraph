@@ -17,6 +17,9 @@
 
 	* Option "is.discrete" is added to function "ssgraph()".
 
+- CHANGES IN VERSION 1.6
+
+	* In function "ssgraph()", option "is.discrete" is changed to "not.cont".
 
 
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 //     Copyright (C) 2018  Reza Mohammadi                                                          |
 //                                                                                                 |
 //     This file is part of ssgraph package.                                                       |
@@ -8,15 +8,15 @@
 //     Software Foundation; see <https://cran.r-project.org/web/licenses/GPL-3>.                   |
 //                                                                                                 |
 //     Maintainer: Reza Mohammadi <a.mohammadi@uva.nl>                                             |
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 
 #include "matrix.h"
 
 extern "C" {
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 // MCMC sampling algorithm for Gaussian Graphical models using spike-and-slab priors  
 // it is for Bayesian model averaging (MA)
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 void ggm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[], int *p, 
             double K_hat[], double p_links[], int *n,
             double *v1, double *v2, double *lambda, double g_prior[], int *print )
@@ -184,10 +184,10 @@ void ggm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[],
 //-- End of main loop for MCMC algorithm ----------------------------------------------------------| 
 }
 
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 // MCMC sampling algorithm for Gaussian Graphical models using spike-and-slab priors  
 // it is for for maximum a posterior probability estimation (MAP)
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 void ggm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[], int *p, 
                         double K_hat[], double p_links[], int *n,
                         int all_graphs[], double all_weights[], 

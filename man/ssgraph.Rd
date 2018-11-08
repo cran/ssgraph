@@ -6,9 +6,10 @@
 	This function has a sampling algorithm for Bayesian model determination in undirected graphical models, based on spike-and-slab priors. 
 }
 \usage{
-ssgraph( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5000, 
-         burnin = iter / 2, var1 = 4e-04, var2 = 1, lambda = 1, g.prior = 0.5, 
-         g.start = "full", sig.start = NULL, save.all = FALSE, print = 1000, 
+ssgraph( data, n = NULL, method = "ggm", not.cont = NULL, 
+         iter = 5000, burnin = iter / 2, var1 = 4e-04, 
+         var2 = 1, lambda = 1, g.prior = 0.5, g.start = "full", 
+         sig.start = NULL, save.all = FALSE, print = 1000, 
          cores = NULL )
 }
 
@@ -17,7 +18,7 @@ ssgraph( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5000,
 	There are two options: (1) an (\eqn{n \times p}) matrix or a \code{data.frame} corresponding to the data, 
 	(2) an (\eqn{p \times p}) covariance matrix as \eqn{S=X'X} which \eqn{X} is the data matrix 
 	(\eqn{n} is the sample size and \eqn{p} is the number of variables). 
-	It also could be an object of class \code{"sim"}, from function \code{\link[BDgraph]{bdgraph.sim}} in the package \code{\link[BDgraph]{BDgraph}}.
+	It also could be an object of class \code{"sim"}, from function \code{\link[BDgraph]{bdgraph.sim}} of \code{R} package \code{\link[BDgraph]{BDgraph}}.
 	The input matrix is automatically identified by checking the symmetry.
 	}
 
@@ -30,7 +31,7 @@ ssgraph( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5000,
 		(e.g. continuous non-Gaussian, discrete, or mixed dataset).
 	}
 	  
-	\item{is.discrete}{ For the case \code{method = "gcgm"}, a vector with binary values in which \eqn{1} for discrete variables. }
+	\item{not.cont}{ For the case \code{method = "gcgm"}, a vector with binary values in which \eqn{1} for discrete variables. }
 	
 	\item{iter}{The number of iteration for the sampling algorithm.}
 	\item{burnin}{The number of burn-in iteration for the sampling algorithm.}
@@ -48,7 +49,7 @@ ssgraph( data, n = NULL, method = "ggm", is.discrete = NULL, iter = 5000,
 	\item{g.start}{
 		Corresponds to a starting point of the graph. It could be an (\eqn{p \times p}) matrix, \code{"empty"} (default), or \code{"full"}. 
 		Option \code{"empty"} means the initial graph is an empty graph and \code{"full"} means a full graph. 
-		It also could be an object with \code{S3} class \code{"ssgraph"} of the package \code{\link[ssgraph]{ssgraph}} or \code{"bdgraph"} of the package \code{\link[BDgraph]{BDgraph}}; 
+		It also could be an object with \code{S3} class \code{"ssgraph"} of package \code{\link[ssgraph]{ssgraph}} or \code{"bdgraph"} of package \code{\link[BDgraph]{BDgraph}}; 
 		this option can be used to run the sampling algorithm from the last objects of previous run (see examples).     
 	} 
 	
@@ -95,6 +96,8 @@ George, E. I. and McCulloch, R. E. (1993). Variable selection via Gibbs sampling
 
 Griffin, J. E. and Brown, P. J. (2010) Inference with normal-gamma prior distributions in regression problems. \emph{Bayesian Analysis}, 5(1):171-188
 
+Mohammadi, A. et al (2017). Bayesian modelling of Dupuytren disease by using Gaussian copula graphical models, \emph{Journal of the Royal Statistical Society: Series C}, 66(3):629-645
+
 Mohammadi, A. and Wit, E. C. (2015). Bayesian Structure Learning in Sparse Gaussian Graphical Models, \emph{Bayesian Analysis}, 10(1):109-138
 
 Mohammadi, A. and Wit, E. C. (2017). \pkg{BDgraph}: An \code{R} Package for Bayesian Structure Learning in Graphical Models, \emph{arXiv preprint arXiv:1501.05108v5} 
@@ -102,7 +105,7 @@ Mohammadi, A. and Wit, E. C. (2017). \pkg{BDgraph}: An \code{R} Package for Baye
 
 \author{ Reza Mohammadi \email{a.mohammadi@uva.nl} }
 
-\seealso{ \code{\link{summary.ssgraph}} }
+\seealso{ \code{\link[BDgraph]{bdgraph}}, \code{\link[BDgraph]{bdgraph.mpl}}, \code{\link{summary.ssgraph}}, \code{\link[BDgraph]{compare}} }
 
 \examples{
 # Generating multivariate normal data from a 'random' graph
@@ -114,12 +117,12 @@ ssgraph.obj <- ssgraph( data = data.sim, iter = 1000 )
 summary( ssgraph.obj )
 
 # To compare the result with true graph
-compare( data.sim, ssgraph.obj, main = c("True graph", "ssgraph"), vis = TRUE )
+compare( data.sim, ssgraph.obj, main=c("True graph", "ssgraph"), vis=TRUE )
 
 \dontrun{
 
 # Running algorithm with starting points from previous run
-ssgraph.obj2 <- ssgraph( data = data.sim, iter = 5000, g.start = ssgraph.obj )
+ssgraph.obj2 <- ssgraph( data = data.sim, iter=5000, g.start = ssgraph.obj )
     
 compare( data.sim, ssgraph.obj, ssgraph.obj2, 
          main = c( "True graph", "Frist run", "Second run" ) )
