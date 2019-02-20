@@ -18,7 +18,7 @@ To speed up the computations, the computationally intensive tasks of the package
 Whenever using this package, please cite as
 \preformatted{
 Mohammadi R. (2018). ssgraph: Bayesian Graphical Estimation using 
-Spike-and-Slab Priors, R package version 1.5, 
+Spike-and-Slab Priors, R package version 1.7, 
 https://cran.r-project.org/package=ssgraph
 }
 }

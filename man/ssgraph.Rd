@@ -9,7 +9,7 @@
 ssgraph( data, n = NULL, method = "ggm", not.cont = NULL, 
          iter = 5000, burnin = iter / 2, var1 = 4e-04, 
          var2 = 1, lambda = 1, g.prior = 0.5, g.start = "full", 
-         sig.start = NULL, save.all = FALSE, print = 1000, 
+         sig.start = NULL, save = FALSE, print = 1000, 
          cores = NULL )
 }
 
@@ -57,7 +57,7 @@ ssgraph( data, n = NULL, method = "ggm", not.cont = NULL,
 		Corresponds to a starting point of the covariance matrix. It must be positive definite matrix.     
 	} 
 
-	\item{save.all}{
+	\item{save}{
 		Logical: if FALSE (default), the adjacency matrices are NOT saved. 
 		If TRUE, the adjacency matrices after burn-in are saved.
 	}
@@ -77,7 +77,7 @@ ssgraph( data, n = NULL, method = "ggm", not.cont = NULL,
 	
 	\item{K_hat}{ The posterior estimation of the precision matrix. }
 
-	For the case "save.all = TRUE" is returned:
+	For the case "save = TRUE" is returned:
 
 	\item{sample_graphs}{ A vector of strings which includes the adjacency matrices of visited graphs after burn-in.}
 	\item{graph_weights}{ A vector which includes the counted numbers of visited graphs after burn-in. }

@@ -1,7 +1,7 @@
  
-|--------------------------------------------------------------------------------------------------|
-|    >>>>> ssgraph NEWS                                                                            |
-|--------------------------------------------------------------------------------------------------|
+ / - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - \
+(                  > > >  ssgraph NEWS  < < <                  )
+ \ - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - /
 
 - CHANGES IN VERSION 1.1
 
@@ -20,6 +20,12 @@
 - CHANGES IN VERSION 1.6
 
 	* In function "ssgraph()", option "is.discrete" is changed to "not.cont".
+	* "configure" and "configure.ac" are removed and 
+	    "Makevars" and "Makevars.win" are modified accordingly.
+
+- CHANGES IN VERSION 1.7
+
+	* In function "ssgraph()" option "save.all" is changed to "save".
 
 
 

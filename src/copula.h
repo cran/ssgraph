@@ -1,5 +1,5 @@
-// ------------------------------------------------------------------------------------------------|
-//     Copyright (C) 2018 Reza Mohammadi                                                      |
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+//     Copyright (C) 2018 - 2019 Reza Mohammadi                                                    |
 //                                                                                                 |
 //     This file is part of BDgraph package.                                                       |
 //                                                                                                 |
@@ -8,7 +8,7 @@
 //     Software Foundation; see <https://cran.r-project.org/web/licenses/GPL-3>.                   |
 //                                                                                                 |
 //     Maintainer: Reza Mohammadi <a.mohammadi@uva.nl>                                             |
-// ------------------------------------------------------------------------------------------------|
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
   
 #ifndef copula_H
 #define copula_H

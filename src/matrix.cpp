@@ -1,5 +1,5 @@
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-//     Copyright (C) 2018 Reza Mohammadi                                                           |
+//     Copyright (C) 2018 - 2019 Reza Mohammadi                                                    |
 //                                                                                                 |
 //     This file is part of ssgraph package.                                                       |
 //                                                                                                 |
@@ -116,27 +116,33 @@ void update_sigma( double sigma[], int *sub, double K_11_inv[], double K_11_inv_
     int i = *sub, dim = *p, p1 = dim - 1; //, one, p1xp1 = p1 * p1;
     
     double alpha_gam = 1.0 / *gam;
-    double alpha_ij = - alpha_gam;
+    double alpha_ij  = - alpha_gam;
 
     // sigma[ -i, -i ] = K_11_inv + K_11_inv_X_K_12 %*% t( K_11_inv_X_K_12 ) / gam;
     #pragma omp parallel for
     for( int col = 0; col < i; col++ )
     {
+		int col_x_p  = col * dim;
+		int col_x_p1 = col * p1;
+		
         for( int row = 0; row < i;  row++ ) 
-            sigma[ col * dim + row ] = K_11_inv[ col * p1 + row ] + K_11_inv_X_K_12[ col ] * K_11_inv_X_K_12[ row ] * alpha_gam;
+            sigma[ col_x_p + row ] = K_11_inv[ col_x_p1 + row ] + K_11_inv_X_K_12[ col ] * K_11_inv_X_K_12[ row ] * alpha_gam;
         
         for( int row = i; row < p1; row++ ) 
-            sigma[ col * dim + ( row + 1 ) ] = K_11_inv[ col * p1 + row ] + K_11_inv_X_K_12[ col ] * K_11_inv_X_K_12[ row ] * alpha_gam;
+            sigma[ col_x_p + ( row + 1 ) ] = K_11_inv[ col_x_p1 + row ] + K_11_inv_X_K_12[ col ] * K_11_inv_X_K_12[ row ] * alpha_gam;
     }    
     
     #pragma omp parallel for
     for( int col = i; col < p1; col++ )
     {
+		int col1_x_p = ( col + 1 ) * dim;
+		int col_x_p1 = col * p1;
+		
         for( int row = 0; row < i ; row++ ) 
-            sigma[ ( col + 1 ) * dim + row ] = K_11_inv[ col * p1 + row ] + K_11_inv_X_K_12[ col ] * K_11_inv_X_K_12[ row ] * alpha_gam;
+            sigma[ col1_x_p + row ] = K_11_inv[ col_x_p1 + row ] + K_11_inv_X_K_12[ col ] * K_11_inv_X_K_12[ row ] * alpha_gam;
         
         for( int row = i; row < p1; row++ ) 
-            sigma[ ( col + 1 ) * dim + ( row + 1 ) ] = K_11_inv[ col * p1 + row ] + K_11_inv_X_K_12[ col ] * K_11_inv_X_K_12[ row ] * alpha_gam;
+            sigma[ col1_x_p + ( row + 1 ) ] = K_11_inv[ col_x_p1 + row ] + K_11_inv_X_K_12[ col ] * K_11_inv_X_K_12[ row ] * alpha_gam;
     }
 /*
     vector<double> copy_sigma_11( p1xp1 );
@@ -214,28 +220,6 @@ void rmvnorm_chol( double sample[], double mean[], double chol_sig[], int *p )
   // PutRNGstate();
 }
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-// Simulate one sample from multivarate normal distribution R ~ N_p( mu, sig )
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-/*
-void rmvnorm_c( double sample[], double mu[], double sig[], int *p )
-{
-    GetRNGstate();
-    int dim = *p, one = 1;
-    char transT = 'T';
-    double alpha = 1.0, beta = 1.0;
-    
-    vector<double> chol_sig( dim * dim );
-    cholesky( &sig[0], &chol_sig[0], &dim );        
-    
-    vector<double> z_N( dim );
-    for( int i = 0; i < dim; i++ ) z_N[ i ] = norm_rand();
-    
-    memcpy( &sample[0], &mu[0], sizeof( double ) * dim );
-    F77_NAME(dgemv)( &transT, &dim, &dim, &alpha, &chol_sig[0], &dim, &z_N[0], &one, &beta, &sample[0], &one );
-    PutRNGstate();
-}
-*/   
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 

@@ -33,12 +33,12 @@ Mohammadi, A. et al (2017). Bayesian modelling of Dupuytren disease by using Gau
 \examples{
 \dontrun{
 # Generating multivariate normal data from a 'random' graph
-dat <- bdgraph.sim( n = 50, p = 6, vis = TRUE )
+data.sim <- bdgraph.sim( n = 50, p = 6, vis = TRUE )
   
-out_ss <- ssgraph( data = dat )
+ssgraph.obj <- ssgraph( data = data.sim )
 
-plot( out_ss )
+plot( ssgraph.obj )
 
-plot( out_ss, cut = 0.3 )
+plot( ssgraph.obj, cut = 0.3 )
 }
 }

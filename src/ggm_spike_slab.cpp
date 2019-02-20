@@ -1,5 +1,5 @@
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-//     Copyright (C) 2018  Reza Mohammadi                                                          |
+//     Copyright (C) 2018 - 2019 Reza Mohammadi                                                    |
 //                                                                                                 |
 //     This file is part of ssgraph package.                                                       |
 //                                                                                                 |
@@ -21,16 +21,14 @@ void ggm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[],
             double K_hat[], double p_links[], int *n,
             double *v1, double *v2, double *lambda, double g_prior[], int *print )
 {
-    double var_1    = *v1;
-    double var_2    = *v2;
     double lambda_c = *lambda;
+    double a_gam    = 0.5 * *n + 1.0; 
     
-    double a_gam         = 0.5 * *n + 1.0; 
-    double sqrt_v1       = sqrt( var_1 );
-    double sqrt_v2       = sqrt( var_2 );
-//    double g_prior_c     = *g_prior;
-//    double one_g_prior_c = 1.0 - g_prior_c;
-
+    double sqrt_v1  = sqrt( *v1 );
+    double sqrt_v2  = sqrt( *v2 );
+    double inv_v1   = 1.0 / *v1;
+    double inv_v2   = 1.0 / *v2;
+    
     double alpha = 1.0, beta = 0.0, alpha1 = -1.0;
     double w1, w2, prob_e, inv_V_ij, sigmaii_inv, Sii_lambda, b_gam, gam, K0ii;
     
@@ -57,18 +55,18 @@ void ggm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[],
     vector<double> K_12( p1 );      // K_12 = ssgraph::rmvnorm( n = 1, mean = mean, sigma = sig_K_12 )
     // vector<double> K_11_inv_X_K_12( p1 );   // K_11_inv_X_K_12 = K_11_inv %*% K_12;
             
-//-- Main loop for birth-death MCMC ---------------------------------------------------------------| 
+//-- Main loop for birth-death MCMC - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ---| 
 	GetRNGstate();
 	for( int i_mcmc = 0; i_mcmc < iteration; i_mcmc++ )
 	{
 		if( ( i_mcmc + 1 ) % print_c == 0 ) Rprintf( " Iteration  %d                 \n", i_mcmc + 1 ); 
 		
-        // --- updating graph G and precision matrix K, row by row --------------------------------|        
+        // --- updating graph G and precision matrix K, row by row - - - - - - - - - - - - - - - - |        
 		for( row_i = 0; row_i < dim; row_i++ )
 		{
 		    ii = row_i * dim + row_i;
 		    
-		    // --- updating precision matrix ------------------------------------------------------|
+		    // --- updating precision matrix - - - - - - - - - - - - - - - - - - - - - - - - - - --|
 		    sub_matrices1( &sigma[0], &sigma_12[0], &sigma_11[0], &row_i, &dim );
 		    
 		    // K_11_inv = sigma_11 - sigma_12 %*% t( sigma_12 ) / sigma[ i, i ]
@@ -82,18 +80,18 @@ void ggm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[],
 	        
             for( k = 0; k < row_i; k++ )
 		    {
-		        inv_V_ij = ( G[ k * dim + row_i ] == 0 ) ? ( 1.0 / var_1 ) : ( 1.0 / var_2 );
+		        inv_V_ij = ( G[ k * dim + row_i ] == 0 ) ? inv_v1 : inv_v2;
 		        K_u[ k * p1 + k ] += inv_V_ij; 
 		    }
 	    
 		    for( k = row_i + 1; k < dim; k++ )
 		    {
 		        k_p1 = k - 1;
-		        inv_V_ij = ( G[ k * dim + row_i ] == 0 ) ? ( 1.0 / var_1 ) : ( 1.0 / var_2 );
+		        inv_V_ij = ( G[ k * dim + row_i ] == 0 ) ? inv_v1 : inv_v2;
 		        K_u[ k_p1 * p1 + k_p1 ] += inv_V_ij; 
 		    }
 		    
-            // --- sampling K_12 from N( mean, sig_K_12 ) -----------------------------------------|            
+            // - - sampling K_12 from N( mean, sig_K_12 ) - - - - - - - - - - - - - - - - - - - - -|            
             cholesky( &K_u[0], &chol_K_u[0], &p1 );        
             
             memcpy( &inv_chol_K_u[0], &chol_K_u[0], sizeof( double ) * p1xp1 );
@@ -107,7 +105,7 @@ void ggm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[],
             
             rmvnorm_chol( &K_12[0], &mean[0], &inv_chol_K_u[0], &p1 );
                         
-            // ------------------------------------------------------------------------------------|            
+            // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |            
 		            
             for( k = 0; k < row_i; k++ )
             {
@@ -131,15 +129,15 @@ void ggm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[],
             K0ii = F77_NAME(ddot)( &p1, &K_12[0], &one, &K_11_inv_X_K_12[0], &one );
             K[ ii ] = gam + K0ii;   // K[ i, i ] = gam + t( K_12 ) %*% K_11_inv_X_K_12
 
-            // --- updating graph matrix ----------------------------------------------------------|
+            // --- updating graph matrix - - - - - - - - - - - - - - - - - - - - - - - - - - - - --|
             
             for( k = 0; k < row_i; k++ )
             {
                 ik = k * dim + row_i;
                 //w1 = one_g_prior_c * exp( - 0.5 * K_12[ k ] * K_12[ k ] / var_1 ) / sqrt_v1;
                 //w2 = g_prior_c     * exp( - 0.5 * K_12[ k ] * K_12[ k ] / var_2 ) / sqrt_v2;
-                w1 = ( 1.0 - g_prior[ ik ] ) * exp( - 0.5 * K_12[ k ] * K_12[ k ] / var_1 ) / sqrt_v1;
-                w2 = g_prior[ ik ]           * exp( - 0.5 * K_12[ k ] * K_12[ k ] / var_2 ) / sqrt_v2;
+                w1 = ( 1.0 - g_prior[ ik ] ) * exp( - 0.5 * K_12[ k ] * K_12[ k ] * inv_v1 ) / sqrt_v1;
+                w2 = g_prior[ ik ]           * exp( - 0.5 * K_12[ k ] * K_12[ k ] * inv_v2 ) / sqrt_v2;
                 
                 prob_e = w2 / ( w1 + w2 );
                 G_ij = ( unif_rand() < prob_e ) ? 1 : 0;
@@ -154,8 +152,8 @@ void ggm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[],
                 ik = k * dim + row_i;
                 //w1 = one_g_prior_c * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] / var_1 ) / sqrt_v1;
                 //w2 = g_prior_c     * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] / var_2 ) / sqrt_v2;
-                w1 = ( 1.0 - g_prior[ ik ] ) * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] / var_1 ) / sqrt_v1;
-                w2 = g_prior[ ik ]           * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] / var_2 ) / sqrt_v2;
+                w1 = ( 1.0 - g_prior[ ik ] ) * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] * inv_v1 ) / sqrt_v1;
+                w2 = g_prior[ ik ]           * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] * inv_v2 ) / sqrt_v2;
                 
                 prob_e = w2 / ( w1 + w2 );
                 G_ij = ( unif_rand() < prob_e ) ? 1 : 0;
@@ -168,20 +166,20 @@ void ggm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[],
 
             update_sigma( &sigma[0], &row_i, &K_11_inv[0], &K_11_inv_X_K_12[0], &gam, &dim );
             
-            //-------------------------------------------------------------------------------------|            
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -|            
 		}
 		
-        //----- saving result ---------------------------------------------------------------------|	
+        //- - - saving result - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -|	
         if( i_mcmc >= burn_in )
             for( i = 0; i < pxp ; i++ )
             {
                 K_hat[   i ] += K[ i ];
                 p_links[ i ] += G[ i ];
             }	
-        //----- End of saving result --------------------------------------------------------------|	
+        //- - - End of saving result - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - --|	
 	}  
 	PutRNGstate();
-//-- End of main loop for MCMC algorithm ----------------------------------------------------------| 
+//-- End of main loop for MCMC algorithm - - - - - - - - - - - - - - - - - - - - - - - - - - - - --| 
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
@@ -194,15 +192,13 @@ void ggm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[]
                         char *sample_graphs[], double graph_weights[], int *size_sample_g,
                         double *v1, double *v2, double *lambda, double g_prior[], int *print )
 {
-    double var_1    = *v1;
-    double var_2    = *v2;
     double lambda_c = *lambda;
+    double a_gam    = 0.5 * *n + 1.0; 
     
-    double a_gam         = 0.5 * *n + 1.0; 
-    double sqrt_v1       = sqrt( var_1 );
-    double sqrt_v2       = sqrt( var_2 );
-    //double g_prior_c     = *g_prior;
-    //double one_g_prior_c = 1.0 - g_prior_c;
+    double sqrt_v1  = sqrt( *v1 );
+    double sqrt_v2  = sqrt( *v2 );
+    double inv_v1   = 1.0 / *v1;
+    double inv_v2   = 1.0 / *v2;
     
     double alpha = 1.0, beta = 0.0, alpha1 = -1.0;
     double w1, w2, prob_e, inv_V_ij, sigmaii_inv, Sii_lambda, b_gam, gam, K0ii;
@@ -237,18 +233,18 @@ void ggm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[]
     vector<double> K_12( p1 );      // K_12 = ssgraph::rmvnorm( n = 1, mean = mean, sigma = sig_K_12 )
     // vector<double> K_11_inv_X_K_12( p1 );   // K_11_inv_X_K_12 = K_11_inv %*% K_12;
     
-    //-- Main loop for birth-death MCMC ---------------------------------------------------------------| 
+    //-- Main loop for birth-death MCMC - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -| 
     GetRNGstate();
     for( int i_mcmc = 0; i_mcmc < iteration; i_mcmc++ )
     {
         if( ( i_mcmc + 1 ) % print_c == 0 ) Rprintf( " Iteration  %d                 \n", i_mcmc + 1 ); 
         
-        // --- updating graph G and precision matrix K, row by row --------------------------------|        
+        // --- updating graph G and precision matrix K, row by row - - - - - - - - - - - - - - - - |        
         for( row_i = 0; row_i < dim; row_i++ )
         {
             ii = row_i * dim + row_i;
             
-            // --- updating precision matrix ------------------------------------------------------|
+            // --- updating precision matrix - - - - - - - - - - - - - - - - - - - - - - - - - - --|
             sub_matrices1( &sigma[0], &sigma_12[0], &sigma_11[0], &row_i, &dim );
             
             // K_11_inv = sigma_11 - sigma_12 %*% t( sigma_12 ) / sigma[ i, i ]
@@ -262,18 +258,18 @@ void ggm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[]
             
             for( k = 0; k < row_i; k++ )
             {
-                inv_V_ij = ( G[ k * dim + row_i ] == 0 ) ? ( 1.0 / var_1 ) : ( 1.0 / var_2 );
+                inv_V_ij = ( G[ k * dim + row_i ] == 0 ) ? inv_v1 : inv_v2;
                 K_u[ k * p1 + k ] += inv_V_ij; 
             }
             
             for( k = row_i + 1; k < dim; k++ )
             {
                 k_p1 = k - 1;
-                inv_V_ij = ( G[ k * dim + row_i ] == 0 ) ? ( 1.0 / var_1 ) : ( 1.0 / var_2 );
+                inv_V_ij = ( G[ k * dim + row_i ] == 0 ) ? inv_v1 : inv_v2;
                 K_u[ k_p1 * p1 + k_p1 ] += inv_V_ij; 
             }
             
-            // --- sampling K_12 from N( mean, sig_K_12 ) -----------------------------------------|            
+            // --- sampling K_12 from N( mean, sig_K_12 ) - - - - - - - - - - - - - - - - - - - - -|            
             cholesky( &K_u[0], &chol_K_u[0], &p1 );        
             
             memcpy( &inv_chol_K_u[0], &chol_K_u[0], sizeof( double ) * p1xp1 );
@@ -287,7 +283,7 @@ void ggm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[]
             
             rmvnorm_chol( &K_12[0], &mean[0], &inv_chol_K_u[0], &p1 );
             
-            // ------------------------------------------------------------------------------------|            
+            // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |            
             
             for( k = 0; k < row_i; k++ )
             {
@@ -311,13 +307,13 @@ void ggm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[]
             K0ii = F77_NAME(ddot)( &p1, &K_12[0], &one, &K_11_inv_X_K_12[0], &one );
             K[ ii ] = gam + K0ii;   // K[ i, i ] = gam + t( K_12 ) %*% K_11_inv_X_K_12
             
-            // --- updating graph matrix ----------------------------------------------------------|
+            // - - updating graph matrix - - - - - - - - - - - - - - - - - - - - - - - - - - - - --|
             
             for( k = 0; k < row_i; k++ )
             {
                 ik = k * dim + row_i;
-                w1 = ( 1.0 - g_prior[ ik ] ) * exp( - 0.5 * K_12[ k ] * K_12[ k ] / var_1 ) / sqrt_v1;
-                w2 = g_prior[ ik ]     * exp( - 0.5 * K_12[ k ] * K_12[ k ] / var_2 ) / sqrt_v2;
+                w1 = ( 1.0 - g_prior[ ik ] ) * exp( - 0.5 * K_12[ k ] * K_12[ k ] * inv_v1 ) / sqrt_v1;
+                w2 = g_prior[ ik ]           * exp( - 0.5 * K_12[ k ] * K_12[ k ] * inv_v2 ) / sqrt_v2;
                 
                 prob_e = w2 / ( w1 + w2 );
                 G_ij = ( unif_rand() < prob_e ) ? 1 : 0;
@@ -330,8 +326,8 @@ void ggm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[]
             {
                 k_p1 = k - 1;
                 ik = k * dim + row_i;
-                w1 = ( 1.0 - g_prior[ ik ] ) * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] / var_1 ) / sqrt_v1;
-                w2 = g_prior[ ik ]     * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] / var_2 ) / sqrt_v2;
+                w1 = ( 1.0 - g_prior[ ik ] ) * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] * inv_v1 ) / sqrt_v1;
+                w2 = g_prior[ ik ]           * exp( - 0.5 * K_12[ k_p1 ] * K_12[ k_p1 ] * inv_v2 ) / sqrt_v2;
                 
                 prob_e = w2 / ( w1 + w2 );
                 G_ij = ( unif_rand() < prob_e ) ? 1 : 0;
@@ -340,14 +336,14 @@ void ggm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[]
                 G[ k * dim + row_i ] = G_ij;   // G[ i, k ] = G_ij;
             }
             
-            // --- updating Covariance matrix according to one-column change of precision matrix --|
+            // - - updating Covariance matrix according to one-column change of precision matrix --|
             
             update_sigma( &sigma[0], &row_i, &K_11_inv[0], &K_11_inv_X_K_12[0], &gam, &dim );
             
-            //-------------------------------------------------------------------------------------|            
+            // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |            
         }
         
-        // ----- saving result --------------------------------------------------------------------|	
+        // - - - saving result - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |	
         if( i_mcmc >= burn_in )
         {
             counter = 0;	
@@ -357,41 +353,41 @@ void ggm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[]
             
             for( i = 0; i < pxp ; i++ )
             {
-                K_hat[  i] += K[i];
-                p_links[i] += G[i];
+                K_hat[   i ] += K[ i ];
+                p_links[ i ] += G[ i ];
             }	
             
             string_g = string( char_g.begin(), char_g.end() );	
             
             this_one = false;
             for( i = 0; i < size_sample_graph; i++ )
-                if( sample_graphs_C[i] == string_g )
+                if( sample_graphs_C[ i ] == string_g )
                 {
-                    graph_weights[i]++;           // += all_weights[count_all_g];
-                    all_graphs[count_all_g] = i;
+                    graph_weights[ i ]++;           // += all_weights[count_all_g];
+                    all_graphs[ count_all_g ] = i;
                     this_one = true;
                     break;
                 } 
                 
                 if( !this_one || size_sample_graph == 0 )
                 {
-                    sample_graphs_C[size_sample_graph] = string_g;
-                    graph_weights[size_sample_graph]   = all_weights[count_all_g];
-                    all_graphs[count_all_g]          = size_sample_graph; 
+                    sample_graphs_C[ size_sample_graph ] = string_g;
+                    graph_weights[ size_sample_graph ]   = all_weights[ count_all_g ];
+                    all_graphs[ count_all_g ]            = size_sample_graph; 
                     size_sample_graph++;				
                 }
                 
                 count_all_g++; 
         } 
-        // ----- End of saving result -------------------------------------------------------------|	
+        // - - - End of saving result - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -|	
     }  
     PutRNGstate();
-    //-- End of main loop for MCMC algorithm ------------------------------------------------------| 
+    //-- End of main loop for MCMC algorithm - - - - - - - - - - - - - - - - - - - - - - - - - - --| 
 
     for( int i = 0; i < ( iteration - burn_in ); i++ ) 
     {
-        sample_graphs_C[i].copy(sample_graphs[i], qp, 0);
-        sample_graphs[i][qp] = '\0';
+        sample_graphs_C[ i ].copy( sample_graphs[ i ], qp, 0 );
+        sample_graphs[ i ][ qp ] = '\0';
     }
     
     *size_sample_g = size_sample_graph;

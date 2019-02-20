@@ -1,5 +1,5 @@
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-#     Copyright (C) 2018  Reza Mohammadi                                                           |
+#     Copyright (C) 2018 - 2019 Reza Mohammadi                                                     |
 #                                                                                                  |
 #     This file is part of ssgraph package.                                                        |
 #                                                                                                  |
@@ -14,7 +14,7 @@
 
 ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000, 
                     burnin = iter / 2, var1 = 4e-04, var2 = 1, lambda = 1, g.prior = 0.5, 
-                    g.start = "full", sig.start = NULL, save.all = FALSE, print = 1000, 
+                    g.start = "full", sig.start = NULL, save = FALSE, print = 1000, 
                     cores = NULL )
 {
     if( iter < burnin ) stop( " Number of iteration must be more than number of burn-in" )
@@ -40,13 +40,13 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
     
     if( any( is.na( data ) ) ) 
     {
-        if( method == "ggm" ) { stop( " 'ggm' method does not deal with missing values. You could choose option method = gcgm" ) }	
+        if( method == "ggm" ) stop( " 'ggm' method does not deal with missing values. You could choose option method = gcgm" )	
         gcgm_NA = 1
     }else{
         gcgm_NA = 0
     }
     
-    p    <- ncol( data )
+    p <- ncol( data )
     if( p < 3 ) stop( " Number of variables/nodes ('p') must be more than or equal with 2" )
     if( is.null( n ) ) n <- nrow( data )
 
@@ -156,7 +156,7 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
         K = solve( sigma )      # precision or concentration matrix (omega)
     }
     
-    if( save.all == TRUE )
+    if( save == TRUE )
     {
         qp1           = ( p * ( p - 1 ) / 2 ) + 1
         string_g      = paste( c( rep( 0, qp1 ) ), collapse = '' )
@@ -167,7 +167,7 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
         size_sample_g = 0
     }
     
-    if( ( save.all == TRUE ) && ( p > 50 & iter > 20000 ) )
+    if( ( save == TRUE ) && ( p > 50 & iter > 20000 ) )
     {
         cat( "  WARNING: Memory needs to run this function is around " )
         print( ( iter - burnin ) * utils::object.size( string_g ), units = "auto" ) 
@@ -180,8 +180,8 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
     mes <- paste( c( iter, " iteration is started.                    " ), collapse = "" )
     cat( mes, "\r" )
     
-## ---- main BDMCMC algorithms implemented in C++ -------------------------------------------------|
-    if( save.all == FALSE )
+## - -  main BDMCMC algorithms implemented in C++ - - - - - - - - - - - - - - - - - - - - - - - - -|
+    if( save == FALSE )
     { 
         if( method == "ggm" )
         {
@@ -221,7 +221,7 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
                          as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
         }
     }
-## ------------------------------------------------------------------------------------------------|
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
     
     label      = colnames( data )
     p_links    = matrix( result $ p_links, p, p, dimnames = list( label, label ) ) 
@@ -232,9 +232,9 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
 
     p_links[ lower.tri( p_links, diag = TRUE ) ] = 0
     p_links = p_links / nmc
-    K_hat = K_hat / nmc
+    K_hat   = K_hat / nmc
 
-    if( save.all == TRUE )
+    if( save == TRUE )
     {
         size_sample_g = result $ size_sample_g
         sample_graphs = result $ sample_graphs[ 1 : size_sample_g ]

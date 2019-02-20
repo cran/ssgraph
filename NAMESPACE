@@ -6,9 +6,6 @@ importFrom( "igraph", "layout.circle" )
 
 export( ssgraph,
         
-        copula_C,
-        copula_S,
-
 		print.ssgraph, 
 		plot.ssgraph, 
 		summary.ssgraph

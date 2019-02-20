@@ -1,5 +1,5 @@
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-//     Copyright (C) 2018 Reza Mohammadi                                                           |
+//     Copyright (C) 2018 - 2019 Reza Mohammadi                                                    |
 //                                                                                                 |
 //     This file is part of ssgraph package.                                                       |
 //                                                                                                 |
@@ -22,7 +22,7 @@ extern "C" {
 	    #ifdef _OPENMP
 	        omp_set_num_threads( *cores );
 	    #else
-	        Rprintf( "  This OS does not support multi-threading for the BDgraph package  \n" ); 
+	        Rprintf( "  This OS does not support multi-threading for the ssgraph package  \n" ); 
 	    #endif
 	}
 }
