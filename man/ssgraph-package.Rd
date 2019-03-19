@@ -9,7 +9,7 @@
 \title{ Bayesian Graphical Estimation using Spike-and-Slab Priors }
 
 \description{
-The \code{R} package \pkg{ssgraph} provides statistical tools for Bayesian estimation in graphical models by using spike-and-slab priors.
+The \code{R} package \pkg{ssgraph} is for Bayesian estimation of graphical models by using spike-and-slab priors.
 The package is implemented the recent improvements in the Bayesian graphical models' literature, including Wang (2015).
 To speed up the computations, the computationally intensive tasks of the package are implemented in \code{C++} in parallel using \pkg{OpenMP}. 
 }
@@ -18,7 +18,7 @@ To speed up the computations, the computationally intensive tasks of the package
 Whenever using this package, please cite as
 \preformatted{
 Mohammadi R. (2018). ssgraph: Bayesian Graphical Estimation using 
-Spike-and-Slab Priors, R package version 1.7, 
+Spike-and-Slab Priors, R package version 1.8, 
 https://cran.r-project.org/package=ssgraph
 }
 }
@@ -48,7 +48,7 @@ library( ssgraph )
 data.sim <- bdgraph.sim( n = 100, p = 8, size = 10, vis = TRUE )
 
 # Running algorithm based on GGMs
-ssgraph.obj <- ssgraph( data = data.sim, iter = 5000 )
+ssgraph.obj <- ssgraph( data = data.sim, iter = 5000, save = TRUE )
 
 summary( ssgraph.obj )
 

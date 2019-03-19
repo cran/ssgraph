@@ -9,13 +9,11 @@ or graph with the highest posterior probability.
 It provides adjacency matrix, size and posterior probability of the selected graph.
 }
 
-\usage{\method{print}{ssgraph}( x, round = 2, ... )}
+\usage{\method{print}{ssgraph}( x, ... )}
 
 \arguments{
-  \item{x}{ An object of \code{S3} class \code{"ssgraph"}, from function \code{\link{ssgraph}}. }
-  \item{round}{A value to round the probabilities to the specified number of decimal places.}
- 
-  \item{\dots}{System reserved (no specific usage). }
+  \item{x}{     An object of \code{S3} class \code{"ssgraph"}, from function \code{\link{ssgraph}}. }
+  \item{\dots}{ System reserved (no specific usage). }
 }
 
 \references{
@@ -33,7 +31,7 @@ Mohammadi, A. et al (2017). Bayesian modelling of Dupuytren disease by using Gau
 \examples{
 \dontrun{
 # Generating multivariate normal data from a 'random' graph
-data.sim <- bdgraph.sim( n = 50, p = 6, vis = TRUE )
+data.sim <- bdgraph.sim( n = 50, p = 6, size = 7, vis = TRUE )
   
 ssgraph.obj <- ssgraph( data = data.sim )
    

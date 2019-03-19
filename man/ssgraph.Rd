@@ -9,8 +9,7 @@
 ssgraph( data, n = NULL, method = "ggm", not.cont = NULL, 
          iter = 5000, burnin = iter / 2, var1 = 4e-04, 
          var2 = 1, lambda = 1, g.prior = 0.5, g.start = "full", 
-         sig.start = NULL, save = FALSE, print = 1000, 
-         cores = NULL )
+         sig.start = NULL, save = FALSE, print = 1000, cores = NULL )
 }
 
 \arguments{
@@ -31,7 +30,7 @@ ssgraph( data, n = NULL, method = "ggm", not.cont = NULL,
 		(e.g. continuous non-Gaussian, discrete, or mixed dataset).
 	}
 	  
-	\item{not.cont}{ For the case \code{method = "gcgm"}, a vector with binary values in which \eqn{1} for discrete variables. }
+	\item{not.cont}{ For the case \code{method = "gcgm"}, a vector with binary values in which \eqn{1} indicates not continuous variables. }
 	
 	\item{iter}{The number of iteration for the sampling algorithm.}
 	\item{burnin}{The number of burn-in iteration for the sampling algorithm.}
@@ -124,7 +123,7 @@ compare( data.sim, ssgraph.obj, main=c("True graph", "ssgraph"), vis=TRUE )
 # Running algorithm with starting points from previous run
 ssgraph.obj2 <- ssgraph( data = data.sim, iter=5000, g.start = ssgraph.obj )
     
-compare( data.sim, ssgraph.obj, ssgraph.obj2, 
+compare( data.sim, ssgraph.obj, ssgraph.obj2, vis = TRUE, 
          main = c( "True graph", "Frist run", "Second run" ) )
 }
 }

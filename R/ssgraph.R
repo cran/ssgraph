@@ -73,12 +73,11 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
         
         if( is.null( not.cont ) )
         {
-            not.cont = numeric( p )
-            for( j in 1:p )
-                if( length( unique( data[ , j ] ) ) < min( 20, n / 2 ) ) not.cont[ j ] = 1
+	        not.cont = c( rep( 1, p ) )
+	        for( j in 1:p )
+	            if( length( unique( data[ , j ] ) ) > min( n / 2 ) ) not.cont[ j ] = 0
         }else{
             if( !is.vector( not.cont )  ) stop( " 'not.cont' must be a vector with length of number of variables" )
-            if( length( not.cont ) != p ) stop( " 'not.cont' must be a vector with length of number of variables" )
             if( length( not.cont ) != p ) stop( " 'not.cont' must be a vector with length of number of variables" )
             if( ( sum( not.cont == 0 ) + sum( not.cont == 1 ) ) != p ) stop( " Element of 'not.cont', as a vector, must be 0 or 1" )
         }
@@ -252,112 +251,91 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
     class( output ) = "ssgraph"
     return( output )
 }
-
+    
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-#    Summary of ssgraph output                                                                     |
+#    Summary for the ssgraph boject                                                                |
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 summary.ssgraph = function( object, round = 2, vis = TRUE, ... )
 {
     p_links    = object $ p_links
-    p          = nrow( object $ last_graph )
-    label      = colnames( object $ last_graph )
-    if ( is.null( label ) ) label <- as.character( 1 : p )
-    selected_g = matrix( 0, p, p, dimnames = list( label, label ) )	
+    selected_g = BDgraph::select( p_links, cut = 0.5 )   
     
-    selected_g[ p_links >  0.5 ] = 1
-    selected_g[ p_links <= 0.5 ] = 0
-    
-    if( vis )
+    if( vis == TRUE )
     {
-        # plot selected graph (graph with the highest posterior probability)
-        G  <- igraph::graph.adjacency( selected_g, mode = "undirected", diag = FALSE )
-        
         if( !is.null( object $ graph_weights ) ) 
             op = graphics::par( mfrow = c( 2, 2 ), pty = "s", omi = c( 0.3, 0.3, 0.3, 0.3 ), mai = c( 0.3, 0.3, 0.3, 0.3 ) ) 
 
+        p        = ncol( p_links )
         subGraph = "Selected graph with edge posterior probability = 0.5"
-        
         if( p < 20 ) size = 15 else size = 2
+        
+        # - - - plot selected graph
+        G  <- igraph::graph.adjacency( selected_g, mode = "undirected", diag = FALSE )
         igraph::plot.igraph( G, layout = igraph::layout.circle, main = "Selected graph", sub = subGraph, vertex.color = "white", vertex.size = size, vertex.label.color = 'black' )
         
         if( !is.null( object $ graph_weights ) )
         {
             sample_graphs = object $ sample_graphs
             graph_weights = object $ graph_weights
-            max_gWeights  = max( graph_weights )
             sum_gWeights  = sum( graph_weights )
-            max_prob_G    = max_gWeights / sum_gWeights
-            
-            # plot posterior distribution of graph
-            graphics::plot( x = 1 : length( graph_weights ), y = graph_weights / sum_gWeights, type = "h", main = "Posterior probability of graphs",
-                  ylab = "Pr(graph|data)", xlab = "graph" )
-            
-            graphics::abline( h = max_prob_G, col = "red" )
-            graphics::text( which( max_gWeights == graph_weights )[1], max_prob_G, "Pr(selected graph|data)", col = "gray60", adj = c( 0, +1 ) )
-            
-            # plot posterior distribution of graph size
-            sizesample_graphs = sapply( sample_graphs, function( x ) length( which( unlist( strsplit( as.character(x), "" ) ) == 1 ) ) )
+
+            # - - - plot posterior distribution of graph
+            graph_prob = graph_weights / sum_gWeights
+            graphics::plot( x = 1 : length( graph_weights ), y = graph_prob, type = "h", main = "Posterior probability of graphs",
+                            ylab = "Pr(graph|data)", xlab = "graph", ylim = c( 0, max( graph_prob ) ) )
+
+            # - - - plot posterior distribution of graph size
+            sizesample_graphs = sapply( sample_graphs, function( x ) length( which( unlist( strsplit( as.character( x ), "" ) ) == 1 ) ) )
             xx       <- unique( sizesample_graphs )
             weightsg <- vector()
             
-            for( i in 1 : length(xx) ) weightsg[i] <- sum( graph_weights[ which( sizesample_graphs == xx[i] ) ] )
+            for( i in 1 : length( xx ) ) weightsg[ i ] <- sum( graph_weights[ which( sizesample_graphs == xx[ i ] ) ] )
             
             graphics::plot( x = xx, y = weightsg / sum_gWeights, type = "h", main = "Posterior probability of graphs size", ylab = "Pr(graph size|data)", xlab = "Graph size" )
             
-            # plot trace of graph size
+            # - - - plot trace of graph size
             all_graphs     = object $ all_graphs
             sizeall_graphs = sizesample_graphs[ all_graphs ]
             
             graphics::plot( x = 1 : length( all_graphs ), sizeall_graphs, type = "l", main = "Trace of graph size", ylab = "Graph size", xlab = "Iteration" )
-            
-            graphics::abline( h = sum( selected_g ), col = "red" )	  
-            
+
             graphics::par( op )
         }
     }
-    
-    K_hat = object $ K_hat
-    
-    return( list( selected_g = selected_g, p_links = round( p_links, round ), K_hat = round( K_hat, round ) ) )
-}  
 
+    return( list( selected_g = selected_g, p_links = round( p_links, round ), K_hat = round( object $ K_hat, round ) ) )
+}  
+     
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-#    Plot for class ssgraph                                                                        |
+#    Plot for the ssgraph boject                                                                   |
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 plot.ssgraph = function( x, cut = 0.5, layout = layout.circle, ... )
 {
     if( ( cut < 0 ) || ( cut > 1 ) ) stop( " Value of 'cut' must be between 0 and 1." )
     
-    p_links                      = x $ p_links
-    selected_g                   = 0 * p_links
-    selected_g[ p_links > cut ]  = 1
-    selected_g[ p_links <= cut ] = 0		
+    selected_g = BDgraph::select( x, cut = cut )
     
     G = igraph::graph.adjacency( selected_g, mode = "undirected", diag = FALSE )
-    igraph::plot.igraph( G, layout = layout, main = "Selected graph", sub = paste0( "Edge posterior probability = ", cut ), ... )	   		
+    igraph::plot.igraph( G, layout = layout, sub = paste0( "Edge posterior probability = ", cut ), ... )	   		
 }
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-#    Print of the ssgraph output                                                                   |
+#    Print for the ssgraph boject                                                                  |
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-print.ssgraph = function( x, round = 2, ... )
+print.ssgraph = function( x, ... )
 {
     p_links = x $ p_links
+    selected_g = BDgraph::select( p_links, cut = 0.5 )
     
-    selected_g                   = 0 * p_links
-    selected_g[ p_links > 0.5 ]  = 1
-    selected_g[ p_links <= 0.5 ] = 0	
-
-    cat( paste( "" ), fill = TRUE )
-    cat( paste( "Adjacency matrix of selected graph" ), fill = TRUE )
-    cat( paste( "" ), fill = TRUE )
+    cat( paste( "\n Adjacency matrix of selected graph \n" ), fill = TRUE )
+    print( selected_g )
     
-    Matrix::printSpMatrix( Matrix::Matrix( selected_g, sparse = TRUE ), col.names = TRUE, note.dropping.colnames = FALSE )
-    cat( paste( "" ), fill = TRUE )
-    cat( paste( "Size of selected graph = ", sum( selected_g ) ), fill = TRUE )
-
-    cat( paste( "Edge posterior probability of selected graph = ", 0.5 ), fill = TRUE )
-
-    cat( paste( "" ), fill = TRUE )
+    cat( paste( "\n Edge posterior probability of the links \n" ), fill = TRUE )
+    print( round( p_links, 2 ) )
 } 
    
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+
+
+
+  
