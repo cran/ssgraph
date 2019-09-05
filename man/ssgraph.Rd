@@ -76,7 +76,7 @@ ssgraph( data, n = NULL, method = "ggm", not.cont = NULL,
 	
 	\item{K_hat}{ The posterior estimation of the precision matrix. }
 
-	For the case "save = TRUE" is returned:
+	For the case "save = TRUE" is also returned:
 
 	\item{sample_graphs}{ A vector of strings which includes the adjacency matrices of visited graphs after burn-in.}
 	\item{graph_weights}{ A vector which includes the counted numbers of visited graphs after burn-in. }
@@ -97,9 +97,9 @@ Griffin, J. E. and Brown, P. J. (2010) Inference with normal-gamma prior distrib
 
 Mohammadi, A. et al (2017). Bayesian modelling of Dupuytren disease by using Gaussian copula graphical models, \emph{Journal of the Royal Statistical Society: Series C}, 66(3):629-645
 
-Mohammadi, A. and Wit, E. C. (2015). Bayesian Structure Learning in Sparse Gaussian Graphical Models, \emph{Bayesian Analysis}, 10(1):109-138
+Mohammadi, R. and Wit, E. C. (2019). \pkg{BDgraph}: An \code{R} Package for Bayesian Structure Learning in Graphical Models, \emph{Journal of Statistical Software}, 89(3):1-30 
 
-Mohammadi, A. and Wit, E. C. (2017). \pkg{BDgraph}: An \code{R} Package for Bayesian Structure Learning in Graphical Models, \emph{arXiv preprint arXiv:1501.05108v5} 
+Mohammadi, A. and Wit, E. C. (2015). Bayesian Structure Learning in Sparse Gaussian Graphical Models, \emph{Bayesian Analysis}, 10(1):109-138
 }
 
 \author{ Reza Mohammadi \email{a.mohammadi@uva.nl} }
@@ -116,7 +116,7 @@ ssgraph.obj <- ssgraph( data = data.sim, iter = 1000 )
 summary( ssgraph.obj )
 
 # To compare the result with true graph
-compare( data.sim, ssgraph.obj, main=c("True graph", "ssgraph"), vis=TRUE )
+compare( data.sim, ssgraph.obj, main = c( "Target", "ssgraph" ), vis = TRUE )
 
 \dontrun{
 
@@ -124,6 +124,10 @@ compare( data.sim, ssgraph.obj, main=c("True graph", "ssgraph"), vis=TRUE )
 ssgraph.obj2 <- ssgraph( data = data.sim, iter=5000, g.start = ssgraph.obj )
     
 compare( data.sim, ssgraph.obj, ssgraph.obj2, vis = TRUE, 
-         main = c( "True graph", "Frist run", "Second run" ) )
+         main = c( "Target", "Frist run", "Second run" ) )
 }
 }
+
+\keyword{structure learning}
+\keyword{iteration}
+

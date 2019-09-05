@@ -15,10 +15,10 @@ To speed up the computations, the computationally intensive tasks of the package
 }
 
 \section{How to cite this package}{
-Whenever using this package, please cite as
+To cite \pkg{ssgraph} in publications use:
 \preformatted{
-Mohammadi R. (2018). ssgraph: Bayesian Graphical Estimation using 
-Spike-and-Slab Priors, R package version 1.8, 
+Mohammadi R. (2019). ssgraph: Bayesian Graphical Estimation using 
+Spike-and-Slab Priors, R package version 1.9, 
 https://cran.r-project.org/package=ssgraph
 }
 }
@@ -34,9 +34,9 @@ Griffin, J. E. and Brown, P. J. (2010) Inference with normal-gamma prior distrib
 
 Mohammadi, A. et al (2017). Bayesian modelling of Dupuytren disease by using Gaussian copula graphical models, \emph{Journal of the Royal Statistical Society: Series C}, 66(3):629-645
 
-Mohammadi, A. and Wit, E. C. (2015). Bayesian Structure Learning in Sparse Gaussian Graphical Models, \emph{Bayesian Analysis}, 10(1):109-138
+Mohammadi, R. and Wit, E. C. (2019). \pkg{BDgraph}: An \code{R} Package for Bayesian Structure Learning in Graphical Models, \emph{Journal of Statistical Software}, 89(3):1-30 
 
-Mohammadi, A. and Wit, E. C. (2017). \pkg{BDgraph}: An \code{R} Package for Bayesian Structure Learning in Graphical Models, \emph{arXiv preprint arXiv:1501.05108v5} 
+Mohammadi, A. and Wit, E. C. (2015). Bayesian Structure Learning in Sparse Gaussian Graphical Models, \emph{Bayesian Analysis}, 10(1):109-138
 }
 
 \examples{
@@ -53,8 +53,8 @@ ssgraph.obj <- ssgraph( data = data.sim, iter = 5000, save = TRUE )
 summary( ssgraph.obj )
 
 # To compare the result with true graph
-compare( data.sim, ssgraph.obj, main=c("True graph", "ssgraph"), vis=TRUE )
+compare( data.sim, ssgraph.obj, main = c( "Target", "ssgraph" ), vis = TRUE )
 }
 }
 
-\keyword{ Package, ssgraph, Bayesian Structure Learning, Gaussian Graphical Models, Gaussian Copula Graphical Models, Spike and Slab Priors }
+\keyword{package}

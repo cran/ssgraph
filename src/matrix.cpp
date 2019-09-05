@@ -86,7 +86,7 @@ void inverse( double A[], double A_inv[], int *p )
             A_inv[ j * dim + i ] = ( i == j );
     
     // LAPACK function: computes solution to A * X = B, where A is symmetric positive definite matrix
-    F77_NAME(dposv)( &uplo, &dim, &dim, A, &dim, A_inv, &dim, &info );
+    F77_NAME(dposv)( &uplo, &dim, &dim, A, &dim, A_inv, &dim, &info FCONE );
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
@@ -100,7 +100,7 @@ void cholesky( double A[], double U[], int *p )
     
     memcpy( U, A, sizeof( double ) * dim * dim );	
     
-    F77_NAME(dpotrf)( &uplo, &dim, U, &dim, &info );	
+    F77_NAME(dpotrf)( &uplo, &dim, U, &dim, &info FCONE );	
     
     #pragma omp parallel for
     for( int i = 0; i < dim; i++ )
@@ -216,7 +216,7 @@ void rmvnorm_chol( double sample[], double mean[], double chol_sig[], int *p )
    for( int row = 0; row < p1; row++ ) z_N[ row ] = norm_rand();
    
    memcpy( &sample[0], &mean[0], sizeof( double ) * p1 );
-   F77_NAME(dgemv)( &transN, &p1, &p1, &alpha, &chol_sig[0], &p1, &z_N[0], &one, &beta1, &sample[0], &one );
+   F77_NAME(dgemv)( &transN, &p1, &p1, &alpha, &chol_sig[0], &p1, &z_N[0], &one, &beta1, &sample[0], &one FCONE );
   // PutRNGstate();
 }
 

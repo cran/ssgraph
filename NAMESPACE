@@ -2,13 +2,11 @@ useDynLib( ssgraph, .registration = TRUE )
 
 import( "BDgraph" )
 
-importFrom( "igraph", "layout.circle" )
-
 export( ssgraph,
         
-		print.ssgraph, 
+		summary.ssgraph,
 		plot.ssgraph, 
-		summary.ssgraph
+		print.ssgraph 
         )
 
 S3method( "summary", "ssgraph" )

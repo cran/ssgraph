@@ -95,13 +95,13 @@ void ggm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[],
             cholesky( &K_u[0], &chol_K_u[0], &p1 );        
             
             memcpy( &inv_chol_K_u[0], &chol_K_u[0], sizeof( double ) * p1xp1 );
-            F77_NAME(dtrtri)( &sideU, &diagN, &p1, &inv_chol_K_u[0], &p1, &info );
+            F77_NAME(dtrtri)( &sideU, &diagN, &p1, &inv_chol_K_u[0], &p1, &info FCONE FCONE );
             
-            F77_NAME(dgemm)( &transN, &transT, &p1, &p1, &p1, &alpha, &inv_chol_K_u[0], &p1, &inv_chol_K_u[0], &p1, &beta, &sig_K_12[0], &p1 );
+            F77_NAME(dgemm)( &transN, &transT, &p1, &p1, &p1, &alpha, &inv_chol_K_u[0], &p1, &inv_chol_K_u[0], &p1, &beta, &sig_K_12[0], &p1 FCONE FCONE );
             
             sub_row_mins( S, &S_12[0], &row_i, &dim );   // S_12 = S[ -i, i ]
             
-            F77_NAME(dgemv)( &transN, &p1, &p1, &alpha1, &sig_K_12[0], &p1, &S_12[0], &one, &beta, &mean[0], &one );
+            F77_NAME(dgemv)( &transN, &p1, &p1, &alpha1, &sig_K_12[0], &p1, &S_12[0], &one, &beta, &mean[0], &one FCONE );
             
             rmvnorm_chol( &K_12[0], &mean[0], &inv_chol_K_u[0], &p1 );
                         
@@ -124,7 +124,7 @@ void ggm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[],
             gam   = Rf_rgamma( a_gam, 1.0 / b_gam );  // gam = rgamma( n = 1, shape = a_gam, scale = 1 / b_gam )
             
             vector<double> K_11_inv_X_K_12( p1 );   // K_11_inv_X_K_12 = K_11_inv %*% K_12;
-            F77_NAME(dgemv)( &transN, &p1, &p1, &alpha, &K_11_inv[0], &p1, &K_12[0], &one, &beta, &K_11_inv_X_K_12[0], &one );
+            F77_NAME(dgemv)( &transN, &p1, &p1, &alpha, &K_11_inv[0], &p1, &K_12[0], &one, &beta, &K_11_inv_X_K_12[0], &one FCONE );
 
             K0ii = F77_NAME(ddot)( &p1, &K_12[0], &one, &K_11_inv_X_K_12[0], &one );
             K[ ii ] = gam + K0ii;   // K[ i, i ] = gam + t( K_12 ) %*% K_11_inv_X_K_12
@@ -273,13 +273,13 @@ void ggm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[]
             cholesky( &K_u[0], &chol_K_u[0], &p1 );        
             
             memcpy( &inv_chol_K_u[0], &chol_K_u[0], sizeof( double ) * p1xp1 );
-            F77_NAME(dtrtri)( &sideU, &diagN, &p1, &inv_chol_K_u[0], &p1, &info );
+            F77_NAME(dtrtri)( &sideU, &diagN, &p1, &inv_chol_K_u[0], &p1, &info FCONE FCONE );
             
-            F77_NAME(dgemm)( &transN, &transT, &p1, &p1, &p1, &alpha, &inv_chol_K_u[0], &p1, &inv_chol_K_u[0], &p1, &beta, &sig_K_12[0], &p1 );
+            F77_NAME(dgemm)( &transN, &transT, &p1, &p1, &p1, &alpha, &inv_chol_K_u[0], &p1, &inv_chol_K_u[0], &p1, &beta, &sig_K_12[0], &p1 FCONE FCONE );
             
             sub_row_mins( S, &S_12[0], &row_i, &dim );   // S_12 = S[ -i, i ]
             
-            F77_NAME(dgemv)( &transN, &p1, &p1, &alpha1, &sig_K_12[0], &p1, &S_12[0], &one, &beta, &mean[0], &one );
+            F77_NAME(dgemv)( &transN, &p1, &p1, &alpha1, &sig_K_12[0], &p1, &S_12[0], &one, &beta, &mean[0], &one FCONE );
             
             rmvnorm_chol( &K_12[0], &mean[0], &inv_chol_K_u[0], &p1 );
             
@@ -302,7 +302,7 @@ void ggm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[]
             gam = Rf_rgamma( a_gam, 1.0 / b_gam );  // gam = rgamma( n = 1, shape = a_gam, scale = 1 / b_gam )
             
             vector<double> K_11_inv_X_K_12( p1 );   // K_11_inv_X_K_12 = K_11_inv %*% K_12;
-            F77_NAME(dgemv)( &transN, &p1, &p1, &alpha, &K_11_inv[0], &p1, &K_12[0], &one, &beta, &K_11_inv_X_K_12[0], &one );
+            F77_NAME(dgemv)( &transN, &p1, &p1, &alpha, &K_11_inv[0], &p1, &K_12[0], &one, &beta, &K_11_inv_X_K_12[0], &one FCONE );
             
             K0ii = F77_NAME(ddot)( &p1, &K_12[0], &one, &K_11_inv_X_K_12[0], &one );
             K[ ii ] = gam + K0ii;   // K[ i, i ] = gam + t( K_12 ) %*% K_11_inv_X_K_12
