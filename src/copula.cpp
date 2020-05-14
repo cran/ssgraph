@@ -1,7 +1,7 @@
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 //     Copyright (C) 2018 - 2019 Reza Mohammadi                                                    |
 //                                                                                                 |
-//     This file is part of BDgraph package.                                                       |
+//     This file is part of ssgraph package.                                                       |
 //                                                                                                 |
 //     ssgraph is free software: you can redistribute it and/or modify it under                    |
 //     the terms of the GNU General Public License as published by the Free                        |

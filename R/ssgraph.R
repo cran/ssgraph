@@ -78,8 +78,7 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
     p_links = matrix( 0, p, p )
     K_hat   = matrix( 0, p, p )
 
-    mes <- paste( c( iter, " iteration is started.                    " ), collapse = "" )
-    cat( mes, "\r" )
+    cat( paste( c( iter, " MCMC sampling ... in progress: \n" ), collapse = "" ) ) 
     
 ## - -  main BDMCMC algorithms implemented in C++ - - - - - - - - - - - - - - - - - - - - - - - - -|
     if( save == FALSE )

@@ -17,8 +17,8 @@ To speed up the computations, the computationally intensive tasks of the package
 \section{How to cite this package}{
 To cite \pkg{ssgraph} in publications use:
 \preformatted{
-Mohammadi R. (2019). ssgraph: Bayesian Graphical Estimation using 
-Spike-and-Slab Priors, R package version 1.9, 
+Mohammadi R. (2020). ssgraph: Bayesian Graphical Estimation using 
+Spike-and-Slab Priors, R package version 1.11, 
 https://cran.r-project.org/package=ssgraph
 }
 }
