@@ -1,25 +1,25 @@
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-#     Copyright (C) 2018 - 2019 Reza Mohammadi                                                     |
-#                                                                                                  |
-#     This file is part of ssgraph package.                                                        |
-#                                                                                                  |
-#     ssgraph is free software: you can redistribute it and/or modify it under                     |
-#     the terms of the GNU General Public License as published by the Free                         |
-#     Software Foundation; see <https://cran.r-project.org/web/licenses/GPL-3>.                    |
-#                                                                                                  |
-#     Maintainer: Reza Mohammadi <a.mohammadi@uva.nl>                                              |
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-#  R code for Graphcial models based on spike and slab priors                                      |
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+#     Copyright (C) 2012 - 2022  Reza Mohammadi                                |
+#                                                                              |
+#     This file is part of ssgraph package.                                    |
+#                                                                              |
+#     ssgraph is free software: you can redistribute it and/or modify it under |
+#     the terms of the GNU General Public License as published by the Free     |
+#     Software Foundation; see <https://cran.r-project.org/web/licenses/GPL-3>.|
+#                                                                              |
+#     Maintainer: Reza Mohammadi <a.mohammadi@uva.nl>                          |
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+#  R code for Graphical models based on spike and slab priors                  |
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 
 ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000, 
                     burnin = iter / 2, var1 = 4e-04, var2 = 1, lambda = 1, g.prior = 0.5, 
                     g.start = "full", sig.start = NULL, save = FALSE, print = 1000, 
                     cores = NULL )
 {
-    if( iter < burnin ) stop( " Number of iteration must be more than number of burn-in" )
-    if(  var1 <= 0    ) stop( " 'var1' must be more than 0" )
-    if(  var2 <= 0    ) stop( " 'var2' must be more than 0" )
+    if( iter < burnin ) stop( "'iter' must be higher than 'burnin'" )
+    if(  var1 <= 0    ) stop( "'var1' must be a positive value" )
+    if(  var2 <= 0    ) stop( "'var2' must be a positive value" )
     
     burnin <- floor( burnin )
     if( print > iter ) print = iter
@@ -46,13 +46,13 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
     g_prior = BDgraph::get_g_prior( g.prior = g.prior, p = p )
     G       = BDgraph::get_g_start( g.start = g.start, g_prior = g_prior, p = p )
     
-    if( ( class( g.start ) == "bdgraph" ) | ( class( g.start ) == "ssgraph" ) ) 
+    if( ( inherits( g.start, "bdgraph" ) ) | ( inherits( g.start, "ssgraph" ) ) ) 
         K <- g.start $ last_K
 
-    if( class( g.start ) == "sim" ) 
+    if( inherits( g.start, "sim" ) ) 
         K <- g.start $ K
     
-    if( ( class( g.start ) != "sim" ) & ( class( g.start ) != "bdgraph" ) & ( class( g.start ) != "ssgraph" ) )
+    if( ( !inherits( g.start, "sim" ) ) & ( !inherits( g.start, "bdgraph" ) ) & ( !inherits( g.start, "ssgraph" ) ) )
     {
         if( is.null( sig.start ) ) sigma = S else sigma = sig.start
         K = solve( sigma )      # precision or concentration matrix (omega)
@@ -80,7 +80,7 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
 
     cat( paste( c( iter, " MCMC sampling ... in progress: \n" ), collapse = "" ) ) 
     
-## - -  main BDMCMC algorithms implemented in C++ - - - - - - - - - - - - - - - - - - - - - - - - -|
+## - -  main BDMCMC algorithms implemented in C++  - - - - - - - - - - - - - - |
     if( save == FALSE )
     { 
         if( method == "ggm" )
@@ -121,7 +121,7 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
                          as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
         }
     }
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
     
     p_links    = matrix( result $ p_links, p, p, dimnames = list( colnames_data, colnames_data ) ) 
     K_hat      = matrix( result $ K_hat  , p, p, dimnames = list( colnames_data, colnames_data ) ) 
@@ -153,9 +153,10 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
     return( output )
 }
     
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-#    Summary for the ssgraph boject                                                                |
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+#    Summary for the ssgraph object                                            |
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+
 summary.ssgraph = function( object, round = 2, vis = TRUE, ... )
 {
     p_links    = object $ p_links
@@ -180,7 +181,7 @@ summary.ssgraph = function( object, round = 2, vis = TRUE, ... )
             graph_prob = graph_weights / sum_gWeights
             graphics::plot( x = 1 : length( graph_weights ), y = graph_prob, type = "h", col = "gray60", 
                             main = "Posterior probability of graphs",
-                            ylab = "Pr(graph|data)", xlab = "graph", ylim = c( 0, max( graph_prob ) ) )
+                            ylab = "Pr( graph | data )", xlab = "graph", ylim = c( 0, max( graph_prob ) ) )
 
             # - - - plot posterior distribution of graph size
             sizesample_graphs = sapply( sample_graphs, function( x ) length( which( unlist( strsplit( as.character( x ), "" ) ) == 1 ) ) )
@@ -192,7 +193,7 @@ summary.ssgraph = function( object, round = 2, vis = TRUE, ... )
             prob_zg = weightsg / sum_gWeights
             graphics::plot( x = xx, y = prob_zg, type = "h", col = "gray10", 
                             main = "Posterior probability of graphs size", 
-                            ylab = "Pr(graph size|data)", xlab = "Graph size",
+                            ylab = "Pr( graph size | data )", xlab = "Graph size",
                             ylim = c( 0, max( prob_zg ) ) )
             
             # - - - plot trace of graph size
@@ -209,17 +210,18 @@ summary.ssgraph = function( object, round = 2, vis = TRUE, ... )
     return( list( selected_g = selected_g, p_links = round( p_links, round ), K_hat = round( object $ K_hat, round ) ) )
 }  
      
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-#    Plot for the ssgraph boject                                                                   |
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+#    Plot for the ssgraph object                                               |
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+
 plot.ssgraph = function( x, cut = 0.5, ... )
 {
     BDgraph::plot.graph( x, cut = cut, sub = paste0( "Edge posterior probability = ", cut ), ... )    
 }
     
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-#    Print for the ssgraph boject                                                                  |
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+#    Print for the ssgraph object                                              |
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 print.ssgraph = function( x, ... )
 {
     p_links = x $ p_links
@@ -228,11 +230,11 @@ print.ssgraph = function( x, ... )
     cat( paste( "\n Adjacency matrix of selected graph \n" ), fill = TRUE )
     print( selected_g )
     
-    cat( paste( "\n Edge posterior probability of the links \n" ), fill = TRUE )
+    cat( paste( "\n Edge posterior probabilities of the links \n" ), fill = TRUE )
     print( round( p_links, 2 ) )
 } 
    
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 
 
 

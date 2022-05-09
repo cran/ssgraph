@@ -1,0 +1,55 @@
+---
+title: "<center> ssgraph with simple example <center>"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ssgraph with simple sxample}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set( collapse = TRUE, comment = ">", fig.width = 7, fig.height = 7, fig.align = "center" )
+```
+
+The `R` package **ssgraph** is designed for Bayesian structure learning in graphical models using spike-and-slab priors. To speed up the computations, the computationally intensive tasks of the package are implemented in `C++` in parallel using **OpenMP**. 
+
+Install **ssgraph** using
+```{r eval = FALSE}
+install.packages( "ssgraph" )
+```
+
+First, we install **ssgraph**
+```{r loadpkg, message = FALSE, warning = FALSE}
+library( ssgraph )
+```
+
+# Example
+
+This is a simple example to see the performance of the package for the Gaussian graphical models. First, by using the function `bdgraph.sim()`, we simulate 100 observations (n = 100) from a multivariate Gaussian distribution with 8 variables (p = 8) and “scale-free” graph structure, as follows:
+
+```{r fig.align = 'center'}
+set.seed( 10 )
+
+data.sim <- bdgraph.sim( n = 100, p = 8, graph = "scale-free", vis = TRUE )
+
+round( head( data.sim $ data, 4 ), 2 )
+```
+
+Since the generated data are Gaussian, we run `ssgraph` function by choosing `method = "ggm"`, as follows:
+
+```{r fig.align = 'center'}
+ssgraph.obj <- ssgraph( data = data.sim, method = "ggm", iter = 5000, save = TRUE )
+
+summary( ssgraph.obj )
+```
+
+To compare the result with true graph
+```{r fig.align = 'center'}
+compare( data.sim, ssgraph.obj, main = c( "Target", "ssgraph" ), vis = TRUE )
+```
+
+
+
+
+
+

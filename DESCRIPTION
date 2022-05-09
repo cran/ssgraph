@@ -1,6 +1,6 @@
 Package: ssgraph
-Title: Bayesian Graphical Estimation using Spike-and-Slab Priors
-Version: 1.12
+Title: Bayesian Graph Structure Learning using Spike-and-Slab Priors
+Version: 1.13
 Authors@R: 
     c(person(given = "Reza",
              family = "Mohammadi",
@@ -11,10 +11,13 @@ Authors@R:
 Description: Bayesian estimation for undirected graphical models using spike-and-slab priors. The package handles continuous, discrete, and mixed data. 
 URL: https://www.uva.nl/profile/a.mohammadi
 Depends: BDgraph (>= 2.58)
+Suggests: skimr, knitr, rmarkdown
+VignetteBuilder: knitr
 License: GPL (>= 2)
 Repository: CRAN
 NeedsCompilation: yes
 Author: Reza Mohammadi [aut, cre] (<https://orcid.org/0000-0001-9538-0648>)
 Maintainer: Reza Mohammadi <a.mohammadi@uva.nl>
-Packaged: 2020-05-24 19:04:19 UTC; reza
-Date/Publication: 2020-05-24 19:20:02 UTC
+Encoding: UTF-8
+Packaged: 2022-05-07 08:28:44 UTC; reza
+Date/Publication: 2022-05-09 08:50:06 UTC

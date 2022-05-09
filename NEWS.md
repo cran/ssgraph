@@ -1,6 +1,8 @@
 # **ssgraph** 
   
-![](https://www.r-pkg.org/badges/version/ssgraph) ![](https://www.r-pkg.org/badges/last-release/ssgraph) ![](https://cranlogs.r-pkg.org/badges/ssgraph) 
+![](https://www.r-pkg.org/badges/version/ssgraph) 
+![](https://www.r-pkg.org/badges/last-release/ssgraph) 
+![](https://cranlogs.r-pkg.org/badges/ssgraph) 
 ![](https://cranlogs.r-pkg.org/badges/grand-total/ssgraph) 
 
 ## **ssgraph** NEWS
