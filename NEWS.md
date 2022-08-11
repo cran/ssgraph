@@ -7,6 +7,10 @@
 
 ## **ssgraph** NEWS
 
+### **ssgraph** Version 1.13
+
+* In function `ssgraph()`, option `print` is removed and option `verbose` is added.
+
 ### **ssgraph** Version 1.12
 
 * `README` is added to the package.

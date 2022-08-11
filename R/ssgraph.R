@@ -14,17 +14,24 @@
 
 ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000, 
                     burnin = iter / 2, var1 = 4e-04, var2 = 1, lambda = 1, g.prior = 0.5, 
-                    g.start = "full", sig.start = NULL, save = FALSE, print = 1000, 
-                    cores = NULL )
+                    g.start = "full", sig.start = NULL, save = FALSE, 
+                    cores = NULL, verbose = TRUE )
 {
     if( iter < burnin ) stop( "'iter' must be higher than 'burnin'" )
     if(  var1 <= 0    ) stop( "'var1' must be a positive value" )
     if(  var2 <= 0    ) stop( "'var2' must be a positive value" )
     
     burnin <- floor( burnin )
-    if( print > iter ) print = iter
+
+    if( is.numeric( verbose ) ){
+        if( ( verbose < 1 ) | ( verbose > 100 ) ) stop( "'verbose' (for numeric case) must be between ( 1, 100 )" )
+        trace_mcmc = floor( verbose )
+        verbose = TRUE
+    }else{
+        trace_mcmc = ifelse( verbose == TRUE, 10, iter + 2 )
+    }
     
-    cores = BDgraph::get_cores( cores = cores )
+    cores = BDgraph::get_cores( cores = cores, verbose = verbose )
     
     list_S_n_p = BDgraph::get_S_n_p( data = data, method = method, n = n, not.cont = not.cont )
     
@@ -68,18 +75,19 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
         all_weights   = c( rep ( 1, iter - burnin ) )         # waiting time for every state		
         size_sample_g = 0
     }
-    
-    if( ( save == TRUE ) && ( p > 50 & iter > 20000 ) )
+
+    if( ( verbose == TRUE ) && ( save == TRUE ) && ( p > 50 & iter > 20000 ) )
     {
-        cat( "  WARNING: Memory needs to run this function is around " )
+        cat( "  WARNING: Memory needs to run this function is around: " )
         print( ( iter - burnin ) * utils::object.size( string_g ), units = "auto" ) 
     } 
-    
+ 
     p_links = matrix( 0, p, p )
     K_hat   = matrix( 0, p, p )
 
-    cat( paste( c( iter, " MCMC sampling ... in progress: \n" ), collapse = "" ) ) 
-    
+    if( verbose == TRUE ) 
+        cat( paste( c( iter, " MCMC sampling ... in progress: \n" ), collapse = "" ) ) 
+
 ## - -  main BDMCMC algorithms implemented in C++  - - - - - - - - - - - - - - |
     if( save == FALSE )
     { 
@@ -87,7 +95,7 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
         {
              result = .C( "ggm_spike_slab_ma", as.integer(iter), as.integer(burnin), G = as.integer(G), K = as.double(K), as.double(S), as.integer(p), 
                          K_hat = as.double(K_hat), p_links = as.double(p_links), as.integer(n),
-                         as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
+                         as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(trace_mcmc), PACKAGE = "ssgraph" )
         }
         
         if( method == "gcgm" )
@@ -97,7 +105,7 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
              result = .C( "gcgm_spike_slab_ma", as.integer(iter), as.integer(burnin), G = as.integer(G), K = as.double(K), as.double(S), as.integer(p), 
                          K_hat = as.double(K_hat), p_links = as.double(p_links), as.integer(n),
                          as.double(Z), as.integer(R), as.integer(not_continuous), as.integer(gcgm_NA),
-                         as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
+                         as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(trace_mcmc), PACKAGE = "ssgraph" )
         }
     }else{
         if( method == "ggm" )
@@ -106,7 +114,7 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
                          K_hat = as.double(K_hat), p_links = as.double(p_links), as.integer(n),
                          all_graphs = as.integer(all_graphs), all_weights = as.double(all_weights), 
                          sample_graphs = as.character(sample_graphs), graph_weights = as.double(graph_weights), size_sample_g = as.integer(size_sample_g),
-                         as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
+                         as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(trace_mcmc), PACKAGE = "ssgraph" )
         }
         
         if( method == "gcgm" )
@@ -118,7 +126,7 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
                          all_graphs = as.integer(all_graphs), all_weights = as.double(all_weights), 
                          sample_graphs = as.character(sample_graphs), graph_weights = as.double(graph_weights), size_sample_g = as.integer(size_sample_g),
                          as.double(Z), as.integer(R), as.integer(not_continuous), as.integer(gcgm_NA),
-                         as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(print), PACKAGE = "ssgraph" )
+                         as.double(var1), as.double(var2), as.double(lambda), as.double(g_prior), as.integer(trace_mcmc), PACKAGE = "ssgraph" )
         }
     }
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |

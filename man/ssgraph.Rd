@@ -9,7 +9,7 @@
 ssgraph( data, n = NULL, method = "ggm", not.cont = NULL, 
          iter = 5000, burnin = iter / 2, var1 = 4e-04, 
          var2 = 1, lambda = 1, g.prior = 0.5, g.start = "full", 
-         sig.start = NULL, save = FALSE, print = 1000, cores = NULL )
+         sig.start = NULL, save = FALSE, cores = NULL, verbose = TRUE )
 }
 
 \arguments{
@@ -61,12 +61,11 @@ ssgraph( data, n = NULL, method = "ggm", not.cont = NULL,
 		If TRUE, the adjacency matrices after burn-in are saved.
 	}
 
-	\item{print}{ Value to see the number of iteration for the MCMC algorithm. }	
-	
 	\item{cores}{ The number of cores to use for parallel execution. 
 	   The default is to use \code{2} CPU cores of the computer.
 	   The case \code{cores="all"} means all CPU cores to use for parallel execution. 
 	   }	
+	\item{verbose}{ logical: if TRUE (default), report/print the MCMC running time. }	
 }
 
 \value{

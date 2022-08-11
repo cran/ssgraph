@@ -1,5 +1,5 @@
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-//     Copyright (C) 2018 - 2019 Reza Mohammadi                                                    |
+//     Copyright (C) 2018 - 2022 Reza Mohammadi                                                    |
 //                                                                                                 |
 //     This file is part of ssgraph package.                                                       |
 //                                                                                                 |
@@ -57,9 +57,13 @@ void ggm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[],
             
 //-- Main loop for birth-death MCMC - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ---| 
 	GetRNGstate();
+	int print_conter = 0;
 	for( int i_mcmc = 0; i_mcmc < iteration; i_mcmc++ )
 	{
-		if( ( i_mcmc + 1 ) % print_c == 0 ) Rprintf( " Iteration  %d                 \n", i_mcmc + 1 ); 
+		if( ( i_mcmc + 1 ) % ( ( print_c * iteration ) / 100 ) == 0 ){
+		    ++print_conter;
+		    ( ( i_mcmc + 1 ) != iteration ) ? Rprintf( "%i%%->", print_c * print_conter ) : Rprintf( " done" );
+		}
 		
         // --- updating graph G and precision matrix K, row by row - - - - - - - - - - - - - - - - |        
 		for( row_i = 0; row_i < dim; row_i++ )
@@ -235,9 +239,13 @@ void ggm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[]
     
     //-- Main loop for birth-death MCMC - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -| 
     GetRNGstate();
+	int print_conter = 0;
     for( int i_mcmc = 0; i_mcmc < iteration; i_mcmc++ )
     {
-        if( ( i_mcmc + 1 ) % print_c == 0 ) Rprintf( " Iteration  %d                 \n", i_mcmc + 1 ); 
+		if( ( i_mcmc + 1 ) % ( ( print_c * iteration ) / 100 ) == 0 ){
+		    ++print_conter;
+		    ( ( i_mcmc + 1 ) != iteration ) ? Rprintf( "%i%%->", print_c * print_conter ) : Rprintf( " done" );
+		}
         
         // --- updating graph G and precision matrix K, row by row - - - - - - - - - - - - - - - - |        
         for( row_i = 0; row_i < dim; row_i++ )

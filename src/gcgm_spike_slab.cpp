@@ -1,5 +1,5 @@
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-//     Copyright (C) 2018 - 2019 Reza Mohammadi                                                    |
+//     Copyright (C) 2018 - 2022 Reza Mohammadi                                                    |
 //                                                                                                 |
 //     This file is part of ssgraph package.                                                       |
 //                                                                                                 |
@@ -59,9 +59,13 @@ void gcgm_spike_slab_ma( int *iter, int *burnin, int G[], double K[], double S[]
     
     // -- Main loop for birth-death MCMC - - - - - - - - - - - - - - - - - - - - - - - - - - - - - | 
     GetRNGstate();
+	int print_conter = 0;
     for( int i_mcmc = 0; i_mcmc < iteration; i_mcmc++ )
     {
-        if( ( i_mcmc + 1 ) % print_c == 0 ) Rprintf( " Iteration  %d                 \n", i_mcmc + 1 ); 
+		if( ( i_mcmc + 1 ) % ( ( print_c * iteration ) / 100 ) == 0 ){
+		    ++print_conter;
+		    ( ( i_mcmc + 1 ) != iteration ) ? Rprintf( "%i%%->", print_c * print_conter ) : Rprintf( " done" );
+		}
 
         // - - - STEP 1: copula - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -|		
         
@@ -239,9 +243,13 @@ void gcgm_spike_slab_map( int *iter, int *burnin, int G[], double K[], double S[
     
     //-- Main loop for birth-death MCMC - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -| 
     GetRNGstate();
+	int print_conter = 0;
     for( int i_mcmc = 0; i_mcmc < iteration; i_mcmc++ )
     {
-        if( ( i_mcmc + 1 ) % print_c == 0 ) Rprintf( " Iteration  %d                 \n", i_mcmc + 1 ); 
+		if( ( i_mcmc + 1 ) % ( ( print_c * iteration ) / 100 ) == 0 ){
+		    ++print_conter;
+		    ( ( i_mcmc + 1 ) != iteration ) ? Rprintf( "%i%%->", print_c * print_conter ) : Rprintf( " done" );
+		}
         
         //- - - STEP 1: copula - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |		
         
