@@ -7,6 +7,12 @@
 
 ## **ssgraph** NEWS
 
+### **ssgraph** Version 1.15
+
+* Function `predict.ssgraph()` is added to the package.
+
+* In function `ssgraph()`, option `g.prior` is changed from `0.5` to `0.2`.
+
 ### **ssgraph** Version 1.13
 
 * In function `ssgraph()`, option `print` is removed and option `verbose` is added.

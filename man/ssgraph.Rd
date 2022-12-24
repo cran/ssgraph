@@ -8,7 +8,7 @@
 \usage{
 ssgraph( data, n = NULL, method = "ggm", not.cont = NULL, 
          iter = 5000, burnin = iter / 2, var1 = 4e-04, 
-         var2 = 1, lambda = 1, g.prior = 0.5, g.start = "full", 
+         var2 = 1, lambda = 1, g.prior = 0.2, g.start = "full", 
          sig.start = NULL, save = FALSE, cores = NULL, verbose = TRUE )
 }
 
@@ -107,7 +107,7 @@ Mohammadi, A. and Wit, E. C. (2015). Bayesian Structure Learning in Sparse Gauss
 
 \examples{
 # Generating multivariate normal data from a 'random' graph
-data.sim <- bdgraph.sim( n = 80, p = 7, prob = 0.5, vis = TRUE )
+data.sim <- bdgraph.sim( n = 80, p = 6, size = 6, vis = TRUE )
 
 # Running algorithm based on GGMs
 ssgraph.obj <- ssgraph( data = data.sim, iter = 1000 )
@@ -115,15 +115,21 @@ ssgraph.obj <- ssgraph( data = data.sim, iter = 1000 )
 summary( ssgraph.obj )
 
 # To compare the result with true graph
-compare( data.sim, ssgraph.obj, main = c( "Target", "ssgraph" ), vis = TRUE )
+compare( pred = ssgraph.obj, actual = data.sim, 
+         main = c( "Target", "ssgraph" ), vis = TRUE )
 
+plotroc( pred = ssgraph.obj, actual = data.sim )
+         
 \dontrun{
 
 # Running algorithm with starting points from previous run
 ssgraph.obj2 <- ssgraph( data = data.sim, iter=5000, g.start = ssgraph.obj )
     
-compare( data.sim, ssgraph.obj, ssgraph.obj2, vis = TRUE, 
-         main = c( "Target", "Frist run", "Second run" ) )
+compare( pred = list( ssgraph.obj, ssgraph.obj2 ), actual = data.sim, 
+         main = c( "Target", "Frist run", "Second run" ), vis = TRUE )
+         
+plotroc( pred = list ( ssgraph.obj, ssgraph.obj2 ), actual = data.sim, 
+         label = c( "Frist run", "Second run" ) )
 }
 }
 

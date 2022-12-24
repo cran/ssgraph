@@ -38,7 +38,8 @@ round( head( data.sim $ data, 4 ), 2 )
 Since the generated data are Gaussian, we run `ssgraph` function by choosing `method = "ggm"`, as follows:
 
 ```{r fig.align = 'center'}
-ssgraph.obj <- ssgraph( data = data.sim, method = "ggm", iter = 5000, save = TRUE )
+ssgraph.obj <- ssgraph( data = data.sim, method = "ggm", iter = 5000, 
+                        save = TRUE, verbose = FALSE )
 
 summary( ssgraph.obj )
 ```
@@ -48,6 +49,9 @@ To compare the result with true graph
 compare( data.sim, ssgraph.obj, main = c( "Target", "ssgraph" ), vis = TRUE )
 ```
 
+```{r fig.align = 'center'}
+plotroc( ssgraph.obj, data.sim, cut = 200 )
+```
 
 
 

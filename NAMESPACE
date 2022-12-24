@@ -3,12 +3,13 @@ useDynLib( ssgraph, .registration = TRUE )
 import( "BDgraph" )
 
 export( ssgraph,
-        
+		predict.ssgraph,        
 		summary.ssgraph,
 		plot.ssgraph, 
 		print.ssgraph 
         )
 
+S3method( "predict", "ssgraph" )
 S3method( "summary", "ssgraph" )
 S3method( "plot"   , "ssgraph" )
 S3method( "print"  , "ssgraph" )

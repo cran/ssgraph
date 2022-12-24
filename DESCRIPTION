@@ -1,6 +1,6 @@
 Package: ssgraph
 Title: Bayesian Graph Structure Learning using Spike-and-Slab Priors
-Version: 1.14
+Version: 1.15
 Authors@R: 
     c(person(given = "Reza",
              family = "Mohammadi",
@@ -19,5 +19,5 @@ NeedsCompilation: yes
 Author: Reza Mohammadi [aut, cre] (<https://orcid.org/0000-0001-9538-0648>)
 Maintainer: Reza Mohammadi <a.mohammadi@uva.nl>
 Encoding: UTF-8
-Packaged: 2022-08-11 22:22:04 UTC; reza
-Date/Publication: 2022-08-11 22:40:02 UTC
+Packaged: 2022-12-24 13:11:44 UTC; reza
+Date/Publication: 2022-12-24 13:30:02 UTC

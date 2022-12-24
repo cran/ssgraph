@@ -13,7 +13,7 @@
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 
 ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000, 
-                    burnin = iter / 2, var1 = 4e-04, var2 = 1, lambda = 1, g.prior = 0.5, 
+                    burnin = iter / 2, var1 = 4e-04, var2 = 1, lambda = 1, g.prior = 0.2, 
                     g.start = "full", sig.start = NULL, save = FALSE, 
                     cores = NULL, verbose = TRUE )
 {
@@ -23,15 +23,16 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
     
     burnin <- floor( burnin )
 
-    if( is.numeric( verbose ) ){
-        if( ( verbose < 1 ) | ( verbose > 100 ) ) stop( "'verbose' (for numeric case) must be between ( 1, 100 )" )
+    if( is.numeric( verbose ) )
+    {
+        if( ( verbose < 1 ) | ( verbose > 100 ) ) 
+            stop( "'verbose' (for numeric case) must be between ( 1, 100 )" )
+        
         trace_mcmc = floor( verbose )
         verbose = TRUE
     }else{
-        trace_mcmc = ifelse( verbose == TRUE, 10, iter + 2 )
+        trace_mcmc = ifelse( verbose == TRUE, 10, iter + 1000 )
     }
-    
-    cores = BDgraph::get_cores( cores = cores, verbose = verbose )
     
     list_S_n_p = BDgraph::get_S_n_p( data = data, method = method, n = n, not.cont = not.cont )
     
@@ -40,7 +41,12 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
     p      = list_S_n_p $ p
     method = list_S_n_p $ method
     colnames_data = list_S_n_p $ colnames_data
-    
+
+    if( ( is.null( cores ) ) & ( p < 16 ) ) 
+        cours = 1
+        
+    cores = BDgraph::get_cores( cores = cores, verbose = verbose )
+        
     if( method == "gcgm" )
     {
         not.cont = list_S_n_p $ not.cont
@@ -62,6 +68,7 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
     if( ( !inherits( g.start, "sim" ) ) & ( !inherits( g.start, "bdgraph" ) ) & ( !inherits( g.start, "ssgraph" ) ) )
     {
         if( is.null( sig.start ) ) sigma = S else sigma = sig.start
+        
         K = solve( sigma )      # precision or concentration matrix (omega)
     }
     
@@ -152,9 +159,11 @@ ssgraph = function( data, n = NULL, method = "ggm", not.cont = NULL, iter = 5000
 
         output = list( p_links = p_links, K_hat = K_hat, last_graph = last_graph, last_K = last_K,
                        sample_graphs = sample_graphs, graph_weights = graph_weights, 
-                       all_graphs = all_graphs, all_weights = all_weights )
+                       all_graphs = all_graphs, all_weights = all_weights,
+                       data = data, method = method )
     }else{
-        output = list( p_links = p_links, K_hat = K_hat, last_graph = last_graph, last_K = last_K )
+        output = list( p_links = p_links, K_hat = K_hat, last_graph = last_graph, last_K = last_K,
+                       data = data, method = method )
     }
     
     class( output ) = "ssgraph"
@@ -241,6 +250,61 @@ print.ssgraph = function( x, ... )
     cat( paste( "\n Edge posterior probabilities of the links \n" ), fill = TRUE )
     print( round( p_links, 2 ) )
 } 
+  
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+#    predict function for "ssgraph" object                                       |
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
+
+predict.ssgraph = function( object, iter = 1, ... )
+{
+    method = object $ method
+    data   = object $ data
+    
+    n_data = nrow( data )
+    p      = ncol( data )
+
+    K     = object $ K_hat
+    sigma = solve( K )
+    
+    Z = BDgraph::rmvnorm( n = iter, mean = 0, sigma = sigma )
+    
+    if( method == "ggm" )
+        sample = Z
+
+    if( method == "gcgm" ) 
+    {
+        sample = 0 * Z
+        
+        for( j in 1:p )
+        {
+            sdj = sqrt( 1 / K[ j, j ] )     # 2a: # variance of component j (given the rest!)
+            muj = - sum( Z[ , -j, drop = FALSE ] %*% K[ -j, j, drop = FALSE ] / K[ j, j ] )	 
+            
+            table_j = table( data[ , j ] )
+            cat_y_j = as.numeric( names( table_j ) ) 
+            len_cat_y_j = length( cat_y_j )
+            
+            if( len_cat_y_j > 1 )
+            {
+                cum_prop_yj = cumsum( table_j[ -len_cat_y_j ] ) / n_data
+                
+                #cut_j = vector( length = len_cat_y_j - 1 )
+                # for( k in 1:length( cut_j ) ) cut_j[ k ] = stats::qnorm( cum_prop_yj[ k ] )
+                cut_j = stats::qnorm( cum_prop_yj, mean = 0, sd = 1 )
+                            
+            	breaks = c( min( Z[ , j ] ) - 1, cut_j, max( Z[ , j ] ) + 1 )  
+            	
+            	ind_sj = as.integer( cut( Z[ , j ], breaks = breaks, right = FALSE ) )
+            	
+            	sample[ , j ]  = cat_y_j[ ind_sj ]
+            }else{
+                sample[ , j ]  = cat_y_j
+            }
+        }
+    }
+
+    return( sample )
+}
    
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
 

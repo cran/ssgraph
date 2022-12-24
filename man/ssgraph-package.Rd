@@ -53,7 +53,11 @@ ssgraph.obj <- ssgraph( data = data.sim, iter = 5000, save = TRUE )
 summary( ssgraph.obj )
 
 # To compare the result with true graph
-compare( data.sim, ssgraph.obj, main = c( "Target", "ssgraph" ), vis = TRUE )
+
+compare( pred = ssgraph.obj, actual = data.sim, 
+         main = c( "Target", "ssgraph" ), vis = TRUE )
+         
+plotroc( pred = sgraph.obj, actual = data.sim )
 }
 }
 
